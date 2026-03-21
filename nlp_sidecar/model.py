@@ -39,10 +39,13 @@ class InferenceResult:
 
 @dataclass(frozen=True)
 class _SessionBundle:
-    """Immutable snapshot of a loaded model + tokenizer + version string."""
+    """Immutable snapshot of a loaded ONNX session and version string.
+
+    The tokenizer is intentionally excluded — it is loaded once at
+    FinBERTModel.__init__ and shared across all model versions (AGENTS.md §6.3).
+    """
 
     session: ort.InferenceSession
-    tokenizer: AutoTokenizer
     model_version: str
 
 
@@ -69,7 +72,24 @@ class FinBERTModel:
 
     def __init__(self, model_path: str | Path) -> None:
         self._lock = threading.Lock()
-        self._bundle: _SessionBundle = _load_bundle(Path(model_path))
+        path = Path(model_path)
+
+        # Load the tokenizer once here. It is never reloaded — it is shared
+        # across all FinBERT versions (AGENTS.md §6.3).
+        tokenizer_dir = path.parent / "tokenizer"
+        if not tokenizer_dir.is_dir():
+            raise FileNotFoundError(
+                f"Tokenizer directory not found: {tokenizer_dir}. "
+                "The HuggingFace tokenizer files must be placed in a "
+                "'tokenizer/' subdirectory alongside the .onnx file."
+            )
+        self._tokenizer: AutoTokenizer = AutoTokenizer.from_pretrained(
+            str(tokenizer_dir),
+            use_fast=True,
+        )
+        logger.info("Tokenizer loaded from: %s", tokenizer_dir)
+
+        self._bundle: _SessionBundle = _load_bundle(path)
         logger.info(
             "FinBERT model loaded: version=%s path=%s",
             self._bundle.model_version,
@@ -96,7 +116,7 @@ class FinBERTModel:
 
         bundle = self._bundle
 
-        encoding = bundle.tokenizer(
+        encoding = self._tokenizer(
             texts,
             padding="max_length",
             truncation=True,
@@ -169,20 +189,17 @@ class FinBERTModel:
 
 def _load_bundle(model_path: Path) -> _SessionBundle:
     """
-    Load an ONNX session, its paired HuggingFace tokenizer, and metadata.
+    Load an ONNX session and its metadata.
 
-    Expected layout (all must exist and be co-located):
+    Expected layout:
 
         /opt/temporal/models/
             finbert_vN.onnx
             finbert_vN.meta.toml      — [model] version = "N.M.P"
-            tokenizer/
-                tokenizer_config.json
-                vocab.txt
-                ... (standard HuggingFace tokenizer files)
+            tokenizer/                — loaded once by FinBERTModel.__init__,
+                                        not touched here (AGENTS.md §6.3)
 
-    The tokenizer/ subdirectory is resolved relative to the .onnx file's
-    parent. A missing .meta.toml or missing version key is a hard error.
+    A missing .meta.toml or missing version key is a hard error.
     """
     if not model_path.exists():
         raise FileNotFoundError(f"ONNX model not found: {model_path}")
@@ -201,14 +218,6 @@ def _load_bundle(model_path: Path) -> _SessionBundle:
             f"meta.toml is missing [model] version key: {meta_path}"
         ) from exc
 
-    tokenizer_dir = model_path.parent / "tokenizer"
-    if not tokenizer_dir.is_dir():
-        raise FileNotFoundError(
-            f"Tokenizer directory not found: {tokenizer_dir}. "
-            "The HuggingFace tokenizer files must be placed in a "
-            "'tokenizer/' subdirectory alongside the .onnx file."
-        )
-
     sess_options = ort.SessionOptions()
     sess_options.graph_optimization_level = (
         ort.GraphOptimizationLevel.ORT_ENABLE_ALL
@@ -221,14 +230,8 @@ def _load_bundle(model_path: Path) -> _SessionBundle:
         providers=["CUDAExecutionProvider", "CPUExecutionProvider"],
     )
 
-    tokenizer = AutoTokenizer.from_pretrained(
-        str(tokenizer_dir),
-        use_fast=True,
-    )
-
     return _SessionBundle(
         session=session,
-        tokenizer=tokenizer,
         model_version=model_version,
     )
 
