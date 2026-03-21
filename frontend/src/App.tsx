@@ -5,24 +5,23 @@ import {
   Typography,
   Button,
   Grid,
-  Card,
-  CardContent,
   Skeleton,
-  Chip,
 } from "@mui/material";
 import { useConfigStore } from "./stores/useConfigStore";
 import { useCircularBuffer } from "./hooks/useCircularBuffer";
 import { useWs } from "./hooks/useWs";
 import { useMarkets, useSystemConfig } from "./hooks/useQueries";
 import { AutoTradingToggle } from "./components/AutoTradingToggle";
+import { MarketCard } from "./components/MarketCard";
+import { NewsFeed } from "./components/NewsFeed";
+import { mockNews } from "./lib/mockData";
 import type { components } from "./lib/api.types";
 
 type NewsEvent = components["schemas"]["NewsEvent"];
 type Market = components["schemas"]["Market"];
 
 export default function App() {
-  const { uiVisibility, activeFilter, setUiVisibility, setActiveFilter } =
-    useConfigStore();
+  const { uiVisibility, setUiVisibility } = useConfigStore();
   const { data: markets = [], isLoading: loadingMarkets } = useMarkets();
   const { data: systemConfig, isLoading: loadingConfig } = useSystemConfig();
   const { buffer: newsFeed, push: pushNews } = useCircularBuffer<NewsEvent>(50);
@@ -30,6 +29,7 @@ export default function App() {
   useWs("ws://localhost:8080/ws");
 
   useEffect(() => {
+    // Listen to real WebSocket events
     const handleNews = (e: Event) => {
       const customEvent = e as CustomEvent<NewsEvent[]>;
       pushNews(customEvent.detail);
@@ -37,6 +37,21 @@ export default function App() {
     window.addEventListener("temporal:news_event", handleNews);
     return () => window.removeEventListener("temporal:news_event", handleNews);
   }, [pushNews]);
+
+  useEffect(() => {
+    // If no news arrives from WS within 3s, use mock news
+    const interval: number = window.setInterval(() => {
+    let index = 0;
+    
+    
+      if (newsFeed.length === 0) { // Keep appending mock data if no real data
+         pushNews([mockNews[index % mockNews.length]]);
+         index++;
+      }
+    }, 4000);
+    
+    return () => window.clearInterval(interval);
+  }, [newsFeed.length, pushNews]);
 
   const toggleAutoTrading = async (status: boolean) => {
     console.log(`Setting system auto-trading to: ${status}`);
@@ -51,7 +66,7 @@ export default function App() {
         p: 4,
       }}
     >
-      <Container maxWidth="lg" sx={{ textAlign: "left" }}>
+      <Container maxWidth="xl" sx={{ textAlign: "left" }}>
         <Box
           sx={{
             display: "flex",
@@ -83,7 +98,7 @@ export default function App() {
         </Box>
 
         {uiVisibility && (
-          <Grid container spacing={3}>
+          <Grid container spacing={4}>
             <Grid size={{ xs: 12, md: 8 }}>
               <Box sx={{ mb: 2 }}>
                 <Typography variant="h5" component="h2" fontWeight="medium">
@@ -96,7 +111,8 @@ export default function App() {
               ) : markets.length === 0 ? (
                 <Box
                   sx={{
-                    p: 2,
+                    p: 3,
+                    textAlign: "center",
                     borderRadius: 1,
                     border: "1px dashed",
                     borderColor: "divider",
@@ -106,143 +122,30 @@ export default function App() {
                   No active markets found...
                 </Box>
               ) : (
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                <Box sx={{ display: "flex", flexDirection: "column" }}>
                   {markets.map((market: Market) => (
-                    <Card key={market.id} variant="outlined">
-                      <CardContent
-                        sx={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          "&:last-child": { pb: 2 },
-                        }}
-                      >
-                        <Box>
-                          <Typography
-                            variant="caption"
-                            fontFamily="monospace"
-                            color="text.secondary"
-                            display="block"
-                            gutterBottom
-                          >
-                            {market.id}
-                          </Typography>
-                          <Typography
-                            variant="h6"
-                            component="h3"
-                            lineHeight={1.2}
-                          >
-                            {market.question}
-                          </Typography>
-                        </Box>
-                        <Box sx={{ textAlign: "right", pl: 2 }}>
-                          <Typography
-                            variant="h5"
-                            fontWeight="bold"
-                            color={
-                              (market.confidenceScore ?? 0) > 0.8
-                                ? "success.main"
-                                : "info.main"
-                            }
-                          >
-                            {((market.confidenceScore ?? 0) * 100).toFixed(1)}%
-                          </Typography>
-                          <Typography
-                            variant="caption"
-                            color="text.secondary"
-                            textTransform="uppercase"
-                            letterSpacing={1}
-                          >
-                            Confidence
-                          </Typography>
-                        </Box>
-                      </CardContent>
-                    </Card>
+                    <MarketCard key={market.id} market={market} />
                   ))}
                 </Box>
               )}
+
+              <Box sx={{ mt: 4 }}>
+                <Typography variant="h5" component="h2" fontWeight="medium" mb={2}>
+                  Risk Controls
+                </Typography>
+                {loadingConfig ? (
+                  <Skeleton variant="rounded" height={200} />
+                ) : (
+                  <AutoTradingToggle
+                    currentStatus={systemConfig?.autoTradingSystemEnabled ?? false}
+                    onToggle={toggleAutoTrading}
+                  />
+                )}
+              </Box>
             </Grid>
 
             <Grid size={{ xs: 12, md: 4 }}>
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="h5" component="h2" fontWeight="medium">
-                  Risk Engine
-                </Typography>
-              </Box>
-              {loadingConfig ? (
-                <Skeleton variant="rounded" height={128} />
-              ) : (
-                <AutoTradingToggle
-                  currentStatus={
-                    systemConfig?.autoTradingSystemEnabled ?? false
-                  }
-                  onToggle={toggleAutoTrading}
-                />
-              )}
-
-              <Box
-                sx={{ mt: 4, p: 2, bgcolor: "action.hover", borderRadius: 1 }}
-              >
-                <Typography
-                  variant="subtitle2"
-                  component="h3"
-                  color="text.secondary"
-                  textTransform="uppercase"
-                  gutterBottom
-                >
-                  Live News Feed
-                </Typography>
-                <Box sx={{ mb: 2, display: "flex", gap: 1 }}>
-                  {["all", "relevant", "ignored"].map((filter) => (
-                    <Chip
-                      key={filter}
-                      label={filter}
-                      size="small"
-                      onClick={() => setActiveFilter(filter)}
-                      color={activeFilter === filter ? "primary" : "default"}
-                    />
-                  ))}
-                </Box>
-                <Box
-                  sx={{
-                    maxHeight: 256,
-                    overflowY: "auto",
-                    pr: 1,
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 1,
-                  }}
-                >
-                  {newsFeed.length === 0 ? (
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      fontStyle="italic"
-                      textAlign="center"
-                      py={2}
-                    >
-                      Waiting for news events...
-                    </Typography>
-                  ) : (
-                    newsFeed.map((news: NewsEvent) => (
-                      <Card key={news.id} variant="outlined">
-                        <CardContent sx={{ p: 1, "&:last-child": { pb: 1 } }}>
-                          <Typography
-                            variant="caption"
-                            fontWeight="bold"
-                            color="primary.main"
-                          >
-                            {news.source}
-                          </Typography>
-                          <Typography variant="body2" mt={0.5}>
-                            {news.title}
-                          </Typography>
-                        </CardContent>
-                      </Card>
-                    ))
-                  )}
-                </Box>
-              </Box>
+              <NewsFeed news={newsFeed} />
             </Grid>
           </Grid>
         )}
