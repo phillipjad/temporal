@@ -6,7 +6,11 @@ import {
   Button,
   Grid,
   Skeleton,
+  IconButton
 } from "@mui/material";
+import NightlightIcon from "@mui/icons-material/Nightlight";
+import LightModeIcon from "@mui/icons-material/LightMode";
+import { useColorMode } from "./hooks/useColorMode";
 import { useConfigStore } from "./stores/useConfigStore";
 import { useCircularBuffer } from "./hooks/useCircularBuffer";
 import { useWs } from "./hooks/useWs";
@@ -22,6 +26,7 @@ type Market = components["schemas"]["Market"];
 
 export default function App() {
   const { uiVisibility, setUiVisibility } = useConfigStore();
+  const { colorMode, toggleColorMode } = useColorMode();
   const { data: markets = [], isLoading: loadingMarkets } = useMarkets();
   const { data: systemConfig, isLoading: loadingConfig } = useSystemConfig();
   const { buffer: newsFeed, push: pushNews } = useCircularBuffer<NewsEvent>(50);
@@ -86,7 +91,10 @@ export default function App() {
               Automated prediction market trading, driven by news.
             </Typography>
           </Box>
-          <Box>
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <IconButton onClick={toggleColorMode} color="inherit">
+              {colorMode === 'light' ? <NightlightIcon /> : <LightModeIcon />}
+            </IconButton>
             <Button
               variant="outlined"
               onClick={() => setUiVisibility(!uiVisibility)}
