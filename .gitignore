@@ -1,0 +1,44 @@
+# ── Secrets ──────────────────────────────────────────────────────────────────
+secrets/
+
+# ── Go (backend/) ─────────────────────────────────────────────────────────────
+backend/bin/
+*.exe
+*.test
+*.out
+
+# ── Python / uv (nlp_sidecar/) ────────────────────────────────────────────────
+nlp_sidecar/.venv/
+nlp_sidecar/.mypy_cache/
+nlp_sidecar/__pycache__/
+nlp_sidecar/**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.ruff_cache/
+
+# ── Frontend (frontend/) ──────────────────────────────────────────────────────
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/*.local
+
+# Logs
+frontend/logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ── Editor ────────────────────────────────────────────────────────────────────
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
