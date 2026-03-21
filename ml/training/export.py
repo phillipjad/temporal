@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import re
 import tomllib
 from pathlib import Path
 
@@ -233,9 +234,9 @@ def main() -> None:
     args = parser.parse_args()
 
     version: str = args.version
-    if not version or not all(c.isdigit() or c == "." for c in version):
+    if not re.fullmatch(r"\d+\.\d+\.\d+", version):
         raise ValueError(
-            f"--version must be a dotted numeric version string, got: {version!r}"
+            f"--version must be a semantic version (e.g. 1.2.3), got: {version!r}"
         )
 
     export(version)
