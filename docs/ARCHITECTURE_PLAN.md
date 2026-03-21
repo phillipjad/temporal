@@ -5,7 +5,7 @@
 > **Design philosophy:** Interfaces first, implementations second. Every external dependency sits behind an abstraction boundary. All safety controls are non-bypassable at the type-system level.
 
 ---
-
+ 
 ## Table of Contents
 
 1. [Key Architectural Decisions (ADRs)](#1-key-architectural-decisions)
@@ -34,15 +34,18 @@
 **Decision:** Kalshi is the first-class broker target. All broker communication flows through an `ExecutionBroker` interface.
 **Rationale:** Kalshi is CFTC-regulated, transacts in standard USD (no crypto wallet complexity), and exposes a well-documented REST + WebSocket API. Polymarket requires USDC and on-chain wallet integration — significantly higher operational risk for v1. The `ExecutionBroker` interface makes any future broker a drop-in without touching core logic.
 
-### ADR-002: ML Inference Runs in a FastAPI Sidecar with Dynamic Batching
-**Decision:** ML inference runs in a dedicated Python 3.11 + FastAPI process, co-located in Docker Compose. The Go engine communicates with it over localhost HTTP. The `MLModel` interface in Go abstracts the transport entirely.
-**Rationale:** A FastAPI sidecar with dynamic batching outperforms sequential in-process inference under load. The sidecar accumulates requests over a short collection window (5–10ms) and processes them as a single vectorized ONNX batch. This also allows independent model hot-reload, independent scaling, and keeps the Go binary free of CGo dependencies. The `MLModel` interface is the clean boundary should the sidecar ever need to be replaced.
+### ADR-002: ML Inference Runs in a FastAPI Sidecar Using FinBERT
+**Decision:** ML inference runs in a dedicated Python 3.11 + FastAPI process, co-located in Docker Compose. The Go engine communicates with it over localhost HTTP. The `MLModel` interface in Go abstracts the transport entirely. The model is **FinBERT** (`ProsusAI/finbert`), a BERT-based transformer pre-trained on financial news corpora and fine-tuned for three-class sentiment (bullish / bearish / neutral), exported to ONNX for runtime inference.
+**Rationale:** FinBERT provides strong domain-specific semantic understanding that TF-IDF bag-of-words models cannot match. It handles negation, paraphrase, and financial terminology correctly out of the box due to its pre-training corpus. The sidecar accumulates requests over a short collection window (5–10ms) and processes them as a single vectorised ONNX batch. This also allows independent model hot-reload, independent scaling, and keeps the Go binary free of CGo dependencies. The `MLModel` interface is the clean boundary should the sidecar ever need to be replaced.
 
-**Latency budget for the sidecar path:**
+**Latency budget for the sidecar path (CPU deployment):**
 - Localhost HTTP round-trip: ~0.2ms
-- JSON serialization (4,104 float32 values): ~0.5ms
-- Batched LightGBM inference (batch of up to 32): ~1–3ms
-- **Total: ~2–4ms per article** — well within the sub-second decision target.
+- JSON serialisation (text string): ~0.1ms
+- HuggingFace tokenisation inside sidecar: ~1–2ms
+- Batched FinBERT ONNX inference (batch of up to 32): ~15–30ms
+- **Total: ~17–33ms per article** — well within the sub-second decision target.
+
+> For GPU-enabled deployments, batched FinBERT inference drops to ~3–8ms, bringing total latency close to the original LightGBM budget.
 
 ### ADR-003: Bounded Worker Pool, Not Per-Event Goroutines
 **Decision:** News events are processed by a fixed-size worker pool fed by a buffered channel, not by spawning a goroutine per article.
@@ -67,6 +70,10 @@
 ### ADR-008: Hardcoded Config Path, TOML Format, Zero Environment Variables
 **Decision:** All configuration lives in a single TOML file at the fixed path `/opt/temporal/config/temporal_config.toml`. This path is hardcoded in the binary. There are no environment variables in this system.
 **Rationale:** Environment variables are stringly-typed, schemaless, cannot express nested structure cleanly, and are difficult to validate at startup. TOML is Go's native config format, supports nested tables, is human-readable, and is validated against a struct at process startup — a misconfigured field is a hard startup error, not a runtime surprise. Fixing the config path eliminates an entire class of deployment ambiguity; all containers mount the config from a well-known location.
+
+### ADR-009: Go Sends Raw Text to Sidecar; Tokenisation Is a Sidecar Concern
+**Decision:** The Go engine performs only Unicode NFKC normalisation and concatenates article title and body before sending the result as a plain text string to the sidecar's `/infer` endpoint. The sidecar owns all tokenisation and truncation logic using the HuggingFace `AutoTokenizer` for the FinBERT vocabulary.
+**Rationale:** FinBERT's WordPiece tokeniser is a Python-native component with no clean Go port. Keeping tokenisation in the sidecar avoids duplicating vocabulary management across languages, ensures tokenisation is always consistent with the model that consumes it, and removes the need for any model-specific artifact (`.vocab.toml`) to be loaded by the Go engine. The Go feature-extraction layer is now model-agnostic.
 
 ---
 
@@ -101,7 +108,7 @@
 
 ### Process Boundaries
 - The Go `engine` and `api` compile to **separate binaries** (separate `cmd/` entrypoints) sharing `internal/` packages.
-- The **ML sidecar** is a separate Python process. It receives feature vectors and returns probability arrays. It has no awareness of markets, users, or trading logic — this boundary is intentional and must not be violated.
+- The **ML sidecar** is a separate Python process. It receives raw article text and returns probability arrays. It has no awareness of markets, users, or trading logic — this boundary is intentional and must not be violated.
 - The **frontend** is a pure static SPA served by the API server in production, or `vite dev` in development.
 - Redis and Postgres are managed services within Docker Compose.
 
@@ -149,7 +156,7 @@ Pollers are jitter-delayed at startup by a random interval in `[0, poll_jitter_m
 [RSS Feed / REST endpoint]
         │
         ▼  (HTTP GET, token bucket gated)
-[RawFeedParser]  — validates, normalizes to RawNewsItem
+[RawFeedParser]  — validates, normalises to RawNewsItem
         │
         ▼
 [DeduplicationFilter]  — Redis bloom check (URL hash + SimHash)
@@ -186,7 +193,7 @@ Unified news channel (buffered, 1024)
         ▼
 WorkerPool  (N workers; default = runtime.NumCPU(), configurable, max 16)
    Worker 1 ──┐
-   Worker 2 ──┤──▶  [Feature Extraction]
+   Worker 2 ──┤──▶  [Text Preparation]
    Worker N ──┘            │
                     [Relevance Filter]  ── no market match ──▶  discard + log
                             │
@@ -201,7 +208,7 @@ WorkerPool  (N workers; default = runtime.NumCPU(), configurable, max 16)
 
 The rolling confidence model accumulates signal incrementally. Batching articles before sending to the sidecar would introduce an artificial latency floor of `(batch_size − 1) × mean_interarrival_time`. At normal volume (0.1 articles/sec), a batch of 10 adds ~90 seconds of latency — incompatible with the sub-second decision target.
 
-**Dynamic batching is the sidecar's responsibility, not the pipeline's.** From the Go worker's perspective, every sidecar call is a synchronous single-item HTTP POST. The sidecar collects concurrent requests internally and dispatches them as a vectorized batch. This is transparent to Go callers.
+**Dynamic batching is the sidecar's responsibility, not the pipeline's.** From the Go worker's perspective, every sidecar call is a synchronous single-item HTTP POST. The sidecar collects concurrent requests internally and dispatches them as a vectorised batch. This is transparent to Go callers.
 
 **Batching is used in exactly two places:**
 - **Redis writes:** Confidence updates are pipelined (multiple commands per round-trip) but not delayed.
@@ -243,42 +250,23 @@ Enforced via `errgroup` with a structured context cancellation tree — not ad h
 
 ## 5. Feature Extraction & NLP Pipeline
 
-### 5.1 Text Preprocessing (Pure Go)
+### 5.1 Text Preparation (Pure Go)
+
+With FinBERT as the inference model, the Go feature-extraction layer is intentionally minimal. The sidecar owns all tokenisation; Go is responsible only for preparing clean text to send.
 
 Applied in sequence to both title and body of every article:
 
-1. Unicode normalization (NFKC)
+1. Unicode normalisation (NFKC)
 2. HTML entity decoding
-3. Lowercasing
-4. Tokenization (whitespace + punctuation boundary split)
-5. Stopword removal (English stopword set, embedded via `go:embed`)
-6. Porter stemming (`github.com/kljensen/snowball`)
+3. Title and body concatenated with a single space separator
 
-### 5.2 TF-IDF Vectorization
+The resulting string is sent directly to the sidecar as the `text` field in the `/infer` request body. No stemming, no stopword removal, no vocabulary lookup — FinBERT's WordPiece tokeniser handles subword segmentation internally.
 
-A TF-IDF vocabulary of fixed size V (default: **4,096 terms**) is computed offline during model training and serialized as a `.vocab.toml` artifact loaded at startup. The Go service builds sparse feature vectors against this fixed vocabulary at runtime.
+> **Note for future contributors:** The previous pipeline included Porter stemming, stopword removal, and TF-IDF vectorisation against a 4,096-term vocabulary (`.vocab.toml`). These are no longer present. The `TFIDFVectorizer` interface and `FeatureVector.TFIDF` field have been removed. See ADR-009.
 
-**Vocabulary construction criteria (training time, Python):**
-- Minimum document frequency: 5
-- Maximum document frequency: 90% of corpus
-- Source corpus: financial and political news archives
+### 5.2 Relevance Filtering (Pre-Inference Gate)
 
-**Feature vector layout:**
-
-```
-[TF-IDF weights: 4,096 × float32]  +  [metadata: 8 × float32]
-                                        ├── source_credibility_score  [0.0, 1.0]
-                                        ├── article_recency_seconds   (normalized)
-                                        ├── title_length_normalized
-                                        ├── body_length_normalized
-                                        └── reserved × 4
-```
-
-**Total input size: 4,104 float32 values per article.**
-
-### 5.3 Relevance Filtering (Pre-Inference Gate)
-
-Before making any HTTP call to the sidecar, each preprocessed article is checked for relevance to the currently subscribed markets. Each market carries a user-configured set of keyword tags (e.g. `["federal reserve", "FOMC", "rate hike"]`). The filter checks preprocessed tokens against all subscribed markets.
+Before making any HTTP call to the sidecar, each article is checked for relevance to the currently subscribed markets. Each market carries a user-configured set of keyword tags (e.g. `["federal reserve", "FOMC", "rate hike"]`). The filter checks the normalised article text against all subscribed markets.
 
 If no market matches: the article is discarded and logged. No sidecar call is made. This keeps sidecar load proportional to meaningful signal volume, not raw news throughput.
 
@@ -288,31 +276,42 @@ If no market matches: the article is discarded and logged. No sidecar call is ma
 
 ### 6.1 Sidecar Responsibility Boundary
 
-The sidecar has exactly one responsibility: **accept a feature vector, run ONNX inference, return a probability array.** It has zero knowledge of markets, users, confidence state, trading logic, or order management. This boundary is a hard architectural constraint and must not be relaxed.
+The sidecar has exactly one responsibility: **accept raw article text, run FinBERT ONNX inference, return a probability array.** It handles tokenisation internally. It has zero knowledge of markets, users, confidence state, trading logic, or order management. This boundary is a hard architectural constraint and must not be relaxed.
 
-### 6.2 Model Choice: LightGBM → ONNX
+### 6.2 Model Choice: FinBERT → ONNX
 
-**Selected model:** LightGBM gradient boosted tree classifier, exported to ONNX via `onnxmltools`.
+**Selected model:** FinBERT (`ProsusAI/finbert`), a BERT-base model pre-trained on financial news corpora, fine-tuned on labelled financial news for three-class sentiment classification, exported to ONNX via `torch.onnx.export`.
 
-| Option | Batched Inference Latency | Explainability | Notes |
-|---|---|---|---|
-| **LightGBM → ONNX** | **~1–3ms** | **High (feature importances)** | **Selected** |
-| XGBoost → ONNX | ~2–5ms | High | Slightly slower; similar quality |
-| DistilBERT → ONNX | ~20–100ms | Low | Future stretch goal for semantic understanding |
+| Option | Batched Inference Latency (CPU) | Semantic Understanding | Domain Tuning | Notes |
+|---|---|---|---|---|
+| LightGBM → ONNX | ~1–3ms | ❌ Bag-of-words only | ❌ Generic | Previous v1 model; replaced |
+| XGBoost → ONNX | ~2–5ms | ❌ Bag-of-words only | ❌ Generic | No meaningful improvement over LightGBM |
+| DistilBERT → ONNX | ~10–25ms | ✅ Transformer | ❌ Generic | General-purpose; weaker on financial text |
+| **FinBERT → ONNX** | **~15–30ms** | **✅ Transformer** | **✅ Finance-domain** | **Selected** |
 
-LightGBM hits the sweet spot: strong performance on TF-IDF text features, fast batched inference, clean ONNX export path, and built-in feature importance — which is directly useful for auditing why a trade was or was not recommended.
+FinBERT hits the right tradeoff for this domain: strong semantic understanding of financial terminology and market-relevant language, correct handling of negation and paraphrase, and a clean ONNX export path. The latency increase over LightGBM (~15–30ms vs ~1–3ms) is acceptable given the sub-second decision target.
 
-**Training pipeline (offline, Python):**
+**Training pipeline (offline, Python in `ml/training/`):**
 
 ```
-Raw text corpus
-    → scikit-learn TF-IDF fit  →  vocabulary serialized to lgbm_vN.vocab.toml
-    → LGBMClassifier.fit()
-    → onnxmltools.convert_lightgbm()  →  lgbm_vN.onnx
-    → metadata written to lgbm_vN.meta.toml
+Labelled financial news CSV  (columns: text, label)
+    → train.py: fine-tune ProsusAI/finbert  →  finbert_vN/  (PyTorch weights)
+                                            →  finbert_vN/tokenizer/  (HuggingFace tokenizer)
+                                            →  finbert_vN/training_metrics.json
+    → export.py: torch.onnx.export         →  finbert_vN.onnx
+                 ONNX verification pass    →  finbert_vN.meta.toml
 ```
 
-All three artifacts (`lgbm_vN.onnx`, `lgbm_vN.vocab.toml`, `lgbm_vN.meta.toml`) are versioned together. A version mismatch between vocabulary and model is a **hard startup error** in both the Go engine and the sidecar.
+Two artifacts are versioned together (`finbert_vN.onnx`, `finbert_vN.meta.toml`). A version mismatch between these is a **hard startup error** in the sidecar.
+
+The tokenizer lives under `finbert_vN/tokenizer/` and is loaded once at sidecar startup. It is not an ONNX artifact and is not reloaded during hot-swap — the tokenizer vocabulary is stable across FinBERT model versions.
+
+**Training data schema (`news_labelled.csv`):**
+
+| Column | Type | Values |
+|---|---|---|
+| `text` | string | Article title + " " + body |
+| `label` | string | `"bullish"` \| `"bearish"` \| `"neutral"` |
 
 ### 6.3 Sidecar API Contract
 
@@ -320,26 +319,26 @@ The sidecar exposes three endpoints. All shapes are also reflected in `openapi.y
 
 ```
 POST /infer
-Request:  { "request_id": "<uuid>", "features": [<4104 float32 values>] }
+Request:  { "request_id": "<uuid>", "text": "<unicode-normalised article text>" }
 Response: { "request_id": "<uuid>", "bullish_prob": 0.72, "bearish_prob": 0.18,
-            "neutral_prob": 0.10, "model_version": "1.0.0" }
+            "neutral_prob": 0.10, "model_version": "2.0.0" }
 
 GET /health
-Response: { "status": "ok", "model_version": "1.0.0" }
+Response: { "status": "ok", "model_version": "2.0.0" }
 
 POST /reload
-Request:  { "model_path": "/opt/temporal/models/lgbm_v2.onnx" }
-Response: { "status": "ok", "model_version": "2.0.0" }
+Request:  { "model_path": "/opt/temporal/models/finbert_v3.onnx" }
+Response: { "status": "ok", "model_version": "3.0.0" }
 ```
 
-The `/reload` endpoint is called by the Go API server's admin handler (`POST /api/v1/admin/reload-model`). The sidecar atomically replaces the ONNX session without interrupting in-flight requests.
+The `/reload` endpoint is called by the Go API server's admin handler (`POST /api/v1/admin/reload-model`). The sidecar atomically replaces the ONNX session without interrupting in-flight requests. The tokenizer is **not** reloaded during a hot-swap.
 
 ### 6.4 Dynamic Batching
 
-The sidecar collects concurrent `/infer` requests for a configurable window (default: 8ms, configurable in `temporal_config.toml` under `[ml.sidecar]`), then dispatches them as a single ONNX batch. Individual requests block on an `asyncio.Event` until their batch result is available.
+The sidecar collects concurrent `/infer` requests for a configurable window (default: 8ms, configurable in `temporal_config.toml` under `[ml.sidecar]`), then dispatches them as a single ONNX batch. Individual requests block on an `asyncio.Future` until their batch result is available.
 
 ```python
-# Structural pseudocode — not final implementation
+# Structural pseudocode — see ml/sidecar/batching.py for implementation
 async def infer(req: InferRequest) -> InferResponse:
     future = asyncio.get_event_loop().create_future()
     await request_queue.put((req, future))
@@ -348,17 +347,18 @@ async def infer(req: InferRequest) -> InferResponse:
 async def batch_processor():
     while True:
         batch = await collect_batch(max_size=32, window_ms=8)
-        feature_matrix = np.stack([r.features for r, _ in batch])
-        outputs = onnx_session.run(None, {"input": feature_matrix})
+        texts = [req.text for req, _ in batch]
+        inputs = tokenizer(texts, padding=True, truncation=True, max_length=512)
+        outputs = onnx_session.run(None, inputs)
         for i, (_, fut) in enumerate(batch):
             fut.set_result(parse_output(outputs, i))
 ```
 
-Go callers see a standard synchronous HTTP POST. Batching is entirely internal to the sidecar.
+Go callers see a standard synchronous HTTP POST. Batching and tokenisation are entirely internal to the sidecar.
 
 ### 6.5 `MLModel` Go Interface
 
-The Go engine never imports anything Python-specific. All sidecar interaction is behind the `MLModel` interface defined in Section 14. The `SidecarMLModel` struct is the sole implementation.
+The Go engine never imports anything Python-specific. All sidecar interaction is behind the `MLModel` interface defined in Section 14. The `SidecarMLModel` struct is the sole implementation. It sends the prepared text string and receives probability floats — it has no awareness of tokenisation or model internals.
 
 ---
 
@@ -778,11 +778,12 @@ db            = 0
   [ml.sidecar]
   host              = "ml-sidecar"
   port              = 8001
-  timeout_ms        = 50    # hard per-call timeout; sidecar must respond within this
+  timeout_ms        = 200   # hard per-call timeout; increased from 50ms for FinBERT inference latency
   batch_window_ms   = 8     # dynamic batching collection window inside sidecar
-  model_path        = "/opt/temporal/models/lgbm_v1.onnx"
-  vocab_path        = "/opt/temporal/models/lgbm_v1.vocab.toml"
-  meta_path         = "/opt/temporal/models/lgbm_v1.meta.toml"
+  max_batch_size    = 32    # maximum articles per ONNX batch call
+  model_path        = "/opt/temporal/models/finbert_v1.onnx"
+  tokenizer_path    = "/opt/temporal/models/finbert_v1/tokenizer"  # HuggingFace tokenizer dir
+  meta_path         = "/opt/temporal/models/finbert_v1.meta.toml"
 
 [ingestion]
 worker_count        = 8     # 0 = runtime.NumCPU()
@@ -826,7 +827,8 @@ Config is parsed and validated immediately after process start. Any failure belo
 |---|---|
 | Required key paths | File does not exist at stated path |
 | Sidecar reachability | `GET /health` on sidecar does not return 200 within 5 seconds |
-| Model version consistency | `meta_path` version does not match `vocab_path` version |
+| Model/metadata version consistency | `meta_path` version does not match the version embedded in `model_path` filename |
+| Tokenizer directory | `tokenizer_path` directory does not exist or is missing `tokenizer_config.json` |
 | Broker env vs simulation mode | `simulation_mode = false` AND `broker.kalshi.env = "demo"` → hard error |
 | Broker env + live trading | `simulation_mode = false` AND `broker.kalshi.env = "prod"` → 10-second countdown warning before startup (intentional friction) |
 | Worker count range | `worker_count > 16` → hard error |
@@ -972,19 +974,11 @@ type Deduplicator interface {
 
 // ─── Feature Extraction ───────────────────────────────────────────────────────
 
-type TextPreprocessor interface {
-    Preprocess(text string) (tokens []string, err error)
-}
-
-type TFIDFVectorizer interface {
-    // Vectorize returns a fixed-length float32 slice of length VocabSize().
-    Vectorize(tokens []string) ([]float32, error)
-    VocabSize() int
-    VocabVersion() string
-}
-
-type FeatureExtractor interface {
-    Extract(item RawNewsItem) (FeatureVector, error)
+// TextPreparer performs the minimal Go-side text preparation before sidecar dispatch:
+// Unicode NFKC normalisation, HTML entity decoding, and title+body concatenation.
+// All tokenisation is handled by the sidecar.
+type TextPreparer interface {
+    Prepare(item RawNewsItem) (text string, err error)
 }
 
 // RelevanceFilter checks whether an article is relevant to any subscribed market.
@@ -995,9 +989,10 @@ type RelevanceFilter interface {
 // ─── ML Strategy ──────────────────────────────────────────────────────────────
 
 // MLModel abstracts the FastAPI sidecar. The sole implementation is SidecarMLModel.
+// Infer accepts the prepared article text; all tokenisation occurs inside the sidecar.
 type MLModel interface {
     // Infer is safe for concurrent use from multiple goroutines.
-    Infer(ctx context.Context, features FeatureVector) (ModelOutput, error)
+    Infer(ctx context.Context, text string) (ModelOutput, error)
 
     // Reload triggers a model hot-swap on the sidecar.
     // Must not interrupt in-flight Infer calls.
@@ -1157,9 +1152,12 @@ type RawNewsItem struct {
     FetchedAt    time.Time  `json:"fetchedAt"`
 }
 
-type FeatureVector struct {
-    TFIDF    []float32  `json:"tfidf"`     // len = TFIDFVectorizer.VocabSize()
-    Metadata [8]float32 `json:"metadata"`
+// PreparedText is the output of TextPreparer: Unicode-normalised, HTML-decoded,
+// title and body concatenated. This string is sent directly to the sidecar /infer
+// endpoint. No vocabulary lookup or vectorisation is performed in Go.
+type PreparedText struct {
+    Text        string    `json:"text"`
+    NewsEventID uuid.UUID `json:"newsEventId"`
 }
 
 // ─── ML ───────────────────────────────────────────────────────────────────────
@@ -1174,7 +1172,7 @@ type ModelOutput struct {
 
 type ModelMetadata struct {
     Version            string    `json:"version"`
-    VocabVersion       string    `json:"vocabVersion"`
+    BaseModel          string    `json:"baseModel"`          // e.g. "ProsusAI/finbert"
     TrainedAt          time.Time `json:"trainedAt"`
     InputShape         []int64   `json:"inputShape"`
     OutputShape        []int64   `json:"outputShape"`
@@ -1364,13 +1362,13 @@ type OrderFilter struct {
 services:
   engine:       # Go binary: news ingestion + strategy + execution
   api:          # Go binary: HTTP/WS API server + static frontend serving
-  ml-sidecar:   # Python FastAPI: ONNX inference + dynamic batching
+  ml-sidecar:   # Python FastAPI: FinBERT ONNX inference + dynamic batching
   redis:        # redis:7-alpine
   postgres:     # timescale/timescaledb:latest-pg16
   migrate:      # golang-migrate one-shot; runs migrations, exits 0
 ```
 
-All services share a single named Docker network. The config file is bind-mounted into every service at `/opt/temporal/config/temporal_config.toml`. Secrets are bind-mounted into `/opt/temporal/secrets/` (gitignored on the host).
+All services share a single named Docker network. The config file is bind-mounted into every service at `/opt/temporal/config/temporal_config.toml`. Secrets are bind-mounted into `/opt/temporal/secrets/` (gitignored on the host). Model artifacts (`.onnx`, `.meta.toml`, `tokenizer/`) are bind-mounted into `/opt/temporal/models/`.
 
 ### 16.2 Directory Structure
 
@@ -1386,7 +1384,7 @@ temporal-ai/
 │
 ├── internal/
 │   ├── news/                        # pollers, dedup, fan-in merger
-│   ├── features/                    # text preprocessing, TF-IDF vectorizer
+│   ├── features/                    # text preparation (Unicode normalisation only)
 │   ├── model/                       # MLModel interface + SidecarMLModel implementation
 │   ├── confidence/                  # ConfidenceStore (Redis), ThresholdMonitor
 │   ├── execution/                   # ExecutionBroker interface, Kalshi client, RiskGuard
@@ -1402,12 +1400,12 @@ temporal-ai/
 ├── ml/
 │   ├── sidecar/
 │   │   ├── main.py                  # FastAPI app entrypoint
-│   │   ├── model.py                 # ONNX session management + hot reload
+│   │   ├── model.py                 # FinBERT ONNX session management + hot reload
 │   │   ├── batching.py              # dynamic batching logic
 │   │   └── pyproject.toml           # uv-managed dependencies
 │   └── training/
-│       ├── train.py                 # LightGBM training pipeline
-│       ├── export.py                # ONNX + vocabulary + metadata export
+│       ├── train.py                 # FinBERT fine-tuning pipeline
+│       ├── export.py                # ONNX + metadata export + verification
 │       └── pyproject.toml           # uv-managed dependencies
 │
 ├── frontend/
@@ -1429,7 +1427,7 @@ temporal-ai/
 │
 ├── migrations/                      # golang-migrate SQL files (sequential numbered)
 │
-├── models/                          # .onnx, .vocab.toml, .meta.toml artifacts
+├── models/                          # .onnx, finbert_vN/tokenizer/, .meta.toml artifacts
 │                                    # large files tracked via Git LFS
 │
 ├── config/
@@ -1504,8 +1502,16 @@ cd ml/sidecar && uv run mypy .
 **ML training:**
 ```sh
 cd ml/training && uv sync
-cd ml/training && uv run python train.py
-cd ml/training && uv run python export.py
+cd ml/training && uv run python train.py \
+    --data /opt/temporal/data/news_labelled.csv \
+    --output-dir /opt/temporal/models \
+    --version 2 \
+    --epochs 4
+
+cd ml/training && uv run python export.py \
+    --model-dir /opt/temporal/models/finbert_v2 \
+    --output-dir /opt/temporal/models \
+    --version 2
 ```
 
 ---
@@ -1518,7 +1524,9 @@ These items are explicitly out of scope for v1. The architecture is designed not
 |---|---|
 | Polymarket support | New `ExecutionBroker` implementation; nothing else changes |
 | Correlated market clustering | New pipeline stage between `ThresholdMonitor` and execution; `ConfidenceStore` unchanged |
-| DistilBERT / transformer model | Swap `SidecarMLModel` target; same `/infer` contract; may need GPU resource in compose |
+| Quantized FinBERT (INT8) | Swap ONNX artifact in sidecar; reduces CPU inference latency to ~8–15ms; same `/infer` contract |
+| GPU inference | Add `CUDAExecutionProvider` to `ort.InferenceSession` providers list in `model.py`; no other changes |
+| DistilBERT / larger transformer | Swap `SidecarMLModel` target; same `/infer` contract; tokenizer path changes |
 | Social signal cross-referencing (X/Twitter) | New `NewsPoller` implementation |
 | Backtesting engine | Reads `signal_events` + `orders` tables; no pipeline changes |
 | GDELT integration | New `NewsPoller` implementation; higher `Deduplicator` load expected |
