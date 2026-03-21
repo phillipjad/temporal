@@ -146,7 +146,7 @@ class ReloadResponse(BaseModel):
     response_model=InferResponse,
     summary="Run FinBERT sentiment inference on a single article",
 )
-async def infer(req: InferRequest) -> InferResponse:
+async def infer(req: InferRequest) -> InferResponse | JSONResponse:
     """
     Accept raw article text and return sentiment class probabilities.
 
@@ -155,21 +155,24 @@ async def infer(req: InferRequest) -> InferResponse:
 
     The text is tokenized inside the sidecar using the HuggingFace
     tokenizer bundled with the model. The Go engine sends plain text.
+
+    Error responses carry { "error": "<message>", "request_id": "<uuid>" }
+    (AGENTS.md §6.4).
     """
     if _batcher is None:
-        raise HTTPException(
+        return JSONResponse(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Sidecar not yet initialised",
+            content={"error": "Sidecar not yet initialised", "request_id": req.request_id},
         )
 
     try:
         result = await _batcher.enqueue(req.text)
     except Exception as exc:
         logger.exception("Inference failed for request_id=%s: %s", req.request_id, exc)
-        raise HTTPException(
+        return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Inference failed",
-        ) from exc
+            content={"error": "Inference failed", "request_id": req.request_id},
+        )
 
     return InferResponse(
         request_id=req.request_id,
