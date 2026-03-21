@@ -31,6 +31,7 @@ import logging
 import tomllib
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import torch
@@ -40,6 +41,7 @@ from transformers import (
     AutoModelForSequenceClassification,
     AutoTokenizer,
     EarlyStoppingCallback,
+    EvalPrediction,
     Trainer,
     TrainingArguments,
 )
@@ -110,7 +112,7 @@ def load_dataset(data_path: Path, cfg: TrainingConfig) -> DatasetDict:
     if not data_path.exists():
         raise FileNotFoundError(f"Training data not found: {data_path}")
 
-    records: list[dict] = []  # type: ignore[type-arg]
+    records: list[dict[str, Any]] = []
     with data_path.open() as fh:
         for lineno, line in enumerate(fh, 1):
             line = line.strip()
@@ -149,7 +151,7 @@ def tokenize_dataset(
     tokenizer: AutoTokenizer,
     max_length: int,
 ) -> DatasetDict:
-    def _tokenize(batch: dict) -> dict:  # type: ignore[type-arg]
+    def _tokenize(batch: dict[str, Any]) -> dict[str, Any]:
         return tokenizer(
             batch["text"],
             padding="max_length",
@@ -168,8 +170,9 @@ def tokenize_dataset(
     return tokenized
 
 
-def compute_metrics(eval_pred: tuple) -> dict[str, float]:  # type: ignore[type-arg]
-    logits, labels = eval_pred
+def compute_metrics(eval_pred: EvalPrediction) -> dict[str, float]:
+    logits = eval_pred.predictions
+    labels = eval_pred.label_ids
     preds = np.argmax(logits, axis=-1)
     report = classification_report(
         labels,
