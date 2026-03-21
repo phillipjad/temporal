@@ -31,7 +31,10 @@ export function AutoTradingToggle({ currentStatus, onToggle }: Props) {
 
   if (currentStatus) {
     return (
-      <Paper variant="outlined" sx={{ p: 2, borderColor: "error.main", bgcolor: "error.light" }}>
+      <Paper
+        variant="outlined"
+        sx={{ p: 2, borderColor: "error.main", bgcolor: "error.light" }}
+      >
         <Typography variant="subtitle1" fontWeight="bold" color="error.dark">
           Auto-Trading is LIVE
         </Typography>
@@ -47,9 +50,17 @@ export function AutoTradingToggle({ currentStatus, onToggle }: Props) {
 
   if (isConfirming) {
     return (
-      <Paper variant="outlined" sx={{ p: 2, borderColor: "warning.main", bgcolor: "warning.light" }}>
+      <Paper
+        variant="outlined"
+        sx={{ p: 2, borderColor: "warning.main", bgcolor: "warning.light" }}
+      >
         <Typography variant="body2" color="warning.dark" mb={2}>
-          Type exactly <Box component="strong" sx={{ fontWeight: 'bold' }}>{`"${CONFIRM_PHRASE}"`}</Box> to enable live auto-trading.
+          Type exactly{" "}
+          <Box
+            component="strong"
+            sx={{ fontWeight: "bold" }}
+          >{`"${CONFIRM_PHRASE}"`}</Box>{" "}
+          to enable live auto-trading.
         </Typography>
         <TextField
           fullWidth
@@ -70,7 +81,11 @@ export function AutoTradingToggle({ currentStatus, onToggle }: Props) {
           >
             Confirm & Enable
           </Button>
-          <Button variant="outlined" color="inherit" onClick={() => setIsConfirming(false)}>
+          <Button
+            variant="outlined"
+            color="inherit"
+            onClick={() => setIsConfirming(false)}
+          >
             Cancel
           </Button>
         </Box>

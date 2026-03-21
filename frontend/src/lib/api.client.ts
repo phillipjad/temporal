@@ -4,5 +4,5 @@ import type { paths } from "./api.types";
 // Central strictly typed fetch client configured globally per AGENTS.md requirements
 export const apiClient = createClient<paths>({
   // Rely on Vite proxy in development or relative paths in production
-  baseUrl: "/", 
+  baseUrl: "/",
 });

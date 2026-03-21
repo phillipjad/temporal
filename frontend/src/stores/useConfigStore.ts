@@ -13,7 +13,12 @@ interface ConfigState {
 export const useConfigStore = create<ConfigState>()((set) => ({
   uiVisibility: true,
   activeFilter: "all",
-  colorMode: (typeof window !== "undefined" && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? "dark" : "light",
+  colorMode:
+    typeof window !== "undefined" &&
+    window.matchMedia &&
+    window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light",
   setUiVisibility: (visible) => set({ uiVisibility: visible }),
   setActiveFilter: (filter) => set({ activeFilter: filter }),
   setColorMode: (mode) => set({ colorMode: mode }),

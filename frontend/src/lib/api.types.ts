@@ -4,109 +4,109 @@
  */
 
 export interface paths {
-    "/api/markets": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List active markets and their current confidence scores */
-        get: operations["getMarkets"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+  "/api/markets": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/system/config": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get system configuration */
-        get: operations["getSystemConfig"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** List active markets and their current confidence scores */
+    get: operations["getMarkets"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/system/config": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
+    /** Get system configuration */
+    get: operations["getSystemConfig"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-    schemas: {
-        Market: {
-            id: string;
-            question: string;
-            confidenceScore: number;
-        };
-        SystemConfig: {
-            autoTradingSystemEnabled: boolean;
-        };
-        NewsEvent: {
-            id: string;
-            source: string;
-            title: string;
-        };
-        WsMessage: {
-            /** @enum {string} */
-            type: "news_event" | "confidence_update";
-            payload: Record<string, never>;
-        };
+  schemas: {
+    Market: {
+      id: string;
+      question: string;
+      confidenceScore: number;
     };
-    responses: never;
-    parameters: never;
-    requestBodies: never;
-    headers: never;
-    pathItems: never;
+    SystemConfig: {
+      autoTradingSystemEnabled: boolean;
+    };
+    NewsEvent: {
+      id: string;
+      source: string;
+      title: string;
+    };
+    WsMessage: {
+      /** @enum {string} */
+      type: "news_event" | "confidence_update";
+      payload: Record<string, never>;
+    };
+  };
+  responses: never;
+  parameters: never;
+  requestBodies: never;
+  headers: never;
+  pathItems: never;
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    getMarkets: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Market"][];
-                };
-            };
-        };
+  getMarkets: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    getSystemConfig: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SystemConfig"];
-                };
-            };
+        content: {
+          "application/json": components["schemas"]["Market"][];
         };
+      };
     };
+  };
+  getSystemConfig: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["SystemConfig"];
+        };
+      };
+    };
+  };
 }

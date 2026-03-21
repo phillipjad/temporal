@@ -6,7 +6,7 @@ import {
   Button,
   Grid,
   Skeleton,
-  IconButton
+  IconButton,
 } from "@mui/material";
 import NightlightIcon from "@mui/icons-material/Nightlight";
 import LightModeIcon from "@mui/icons-material/LightMode";
@@ -31,7 +31,11 @@ export default function App() {
   const { data: systemConfig, isLoading: loadingConfig } = useSystemConfig();
   const { buffer: newsFeed, push: pushNews } = useCircularBuffer<NewsEvent>(50);
 
-  useWs(window.location.protocol === "https:" ? `wss://${window.location.host}/ws` : `ws://${window.location.host}/ws`);
+  useWs(
+    window.location.protocol === "https:"
+      ? `wss://${window.location.host}/ws`
+      : `ws://${window.location.host}/ws`,
+  );
 
   useEffect(() => {
     // Listen to real WebSocket events
@@ -46,15 +50,15 @@ export default function App() {
   useEffect(() => {
     // If no news arrives from WS within 3s, use mock news
     const interval: number = window.setInterval(() => {
-    let index = 0;
-    
-    
-      if (newsFeed.length === 0) { // Keep appending mock data if no real data
-         pushNews([mockNews[index % mockNews.length]]);
-         index++;
+      let index = 0;
+
+      if (newsFeed.length === 0) {
+        // Keep appending mock data if no real data
+        pushNews([mockNews[index % mockNews.length]]);
+        index++;
       }
     }, 4000);
-    
+
     return () => window.clearInterval(interval);
   }, [newsFeed.length, pushNews]);
 
@@ -91,9 +95,9 @@ export default function App() {
               Automated prediction market trading, driven by news.
             </Typography>
           </Box>
-          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+          <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
             <IconButton onClick={toggleColorMode} color="inherit">
-              {colorMode === 'light' ? <NightlightIcon /> : <LightModeIcon />}
+              {colorMode === "light" ? <NightlightIcon /> : <LightModeIcon />}
             </IconButton>
             <Button
               variant="outlined"
@@ -138,14 +142,21 @@ export default function App() {
               )}
 
               <Box sx={{ mt: 4 }}>
-                <Typography variant="h5" component="h2" fontWeight="medium" mb={2}>
+                <Typography
+                  variant="h5"
+                  component="h2"
+                  fontWeight="medium"
+                  mb={2}
+                >
                   Risk Controls
                 </Typography>
                 {loadingConfig ? (
                   <Skeleton variant="rounded" height={200} />
                 ) : (
                   <AutoTradingToggle
-                    currentStatus={systemConfig?.autoTradingSystemEnabled ?? false}
+                    currentStatus={
+                      systemConfig?.autoTradingSystemEnabled ?? false
+                    }
                     onToggle={toggleAutoTrading}
                   />
                 )}

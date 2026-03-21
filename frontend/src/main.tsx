@@ -27,5 +27,5 @@ createRoot(document.getElementById("root")!).render(
     <QueryClientProvider client={queryClient}>
       <RootApp />
     </QueryClientProvider>
-  </StrictMode>
+  </StrictMode>,
 );
