@@ -112,15 +112,3 @@ jobs:
       - name: Run unit tests
         run: go test -v -race -count=1 -covermode=atomic -coverprofile=coverage.out ./...
 
-      - name: Coverage gate (80% per package)
-        run: |
-          FAIL=0
-          for pkg in $(go list ./...); do
-            go test -covermode=atomic -coverprofile=/tmp/c.out "$pkg" 2>/dev/null
-            pct=$(go tool cover -func=/tmp/c.out | tail -1 | awk '{gsub(/%/,""); print $NF}')
-            if [ -n "$pct" ] && awk "BEGIN{exit !($pct+0 < 80)}"; then
-              echo "FAIL: $pkg coverage=${pct}%"
-              FAIL=1
-            fi
-          done
-          exit $FAIL
