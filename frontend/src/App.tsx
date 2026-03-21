@@ -26,7 +26,7 @@ export default function App() {
   const { data: systemConfig, isLoading: loadingConfig } = useSystemConfig();
   const { buffer: newsFeed, push: pushNews } = useCircularBuffer<NewsEvent>(50);
 
-  useWs("ws://localhost:8080/ws");
+  useWs(window.location.protocol === "https:" ? `wss://${window.location.host}/ws` : `ws://${window.location.host}/ws`);
 
   useEffect(() => {
     // Listen to real WebSocket events

@@ -9,12 +9,25 @@ const mockWsInstances: MockWebSocket[] = [];
 
 class MockWebSocket {
   url: string;
-  onmessage: ((event: unknown) => void) | null = null;
+  listeners: Record<string, ((event: unknown) => void)[]> = {};
   close = vi.fn();
 
   constructor(url: string) {
     this.url = url;
+    this.listeners = {};
     mockWsInstances.push(this);
+  }
+
+  addEventListener(event: string, callback: (event: unknown) => void) {
+    if (!this.listeners[event]) this.listeners[event] = [];
+    this.listeners[event].push(callback);
+  }
+
+  // Helper to trigger events in tests
+  trigger(event: string, data: unknown) {
+    if (this.listeners[event]) {
+      this.listeners[event].forEach((cb) => cb(data));
+    }
   }
 }
 
@@ -45,11 +58,9 @@ describe("useWs", () => {
     expect(ws).toBeDefined();
 
     // Send a message
-    if (ws.onmessage) {
-      ws.onmessage({
-        data: JSON.stringify({ type: "news_event", payload: {} }),
-      });
-    }
+    ws.trigger("message", {
+      data: JSON.stringify({ type: "news_event", payload: {} }),
+    });
 
     // Haven't flushed yet
     expect(debugMock).not.toHaveBeenCalled();
@@ -78,11 +89,9 @@ describe("useWs", () => {
 
     const ws = mockWsInstances[0];
 
-    if (ws.onmessage) {
-      ws.onmessage({
-        data: JSON.stringify({ type: "confidence_update", payload: {} }),
-      });
-    }
+    ws.trigger("message", {
+      data: JSON.stringify({ type: "confidence_update", payload: {} }),
+    });
 
     // Advance 200ms
     vi.advanceTimersByTime(200);

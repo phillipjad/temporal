@@ -11,7 +11,7 @@ export function useWs(url: string) {
 
     const ws = new WebSocket(url);
 
-    ws.onmessage = (event) => {
+    ws.addEventListener('message', (event) => {
       try {
         // Parse the message and push it to the buffer ref
         // to avoid calling setState directly on the WebSocket event wrapper
@@ -20,7 +20,7 @@ export function useWs(url: string) {
       } catch (e) {
         console.error("Failed to parse WS message", e);
       }
-    };
+    });
 
     // Fast 200ms batched interval (ADR constraint)
     const interval = setInterval(() => {

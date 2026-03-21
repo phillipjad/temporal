@@ -3,5 +3,6 @@ import type { paths } from "./api.types";
 
 // Central strictly typed fetch client configured globally per AGENTS.md requirements
 export const apiClient = createClient<paths>({
-  baseUrl: "http://localhost:8080", // the Go backend API port
+  // Rely on Vite proxy in development or relative paths in production
+  baseUrl: "/", 
 });
