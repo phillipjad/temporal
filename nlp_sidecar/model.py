@@ -84,6 +84,11 @@ class FinBERTModel:
                 f"Tokenizer directory not found: {tokenizer_dir}. "
                 "Set [ml.sidecar] tokenizer_path in temporal_config.toml."
             )
+        if not (tokenizer_dir / "tokenizer_config.json").is_file():
+            raise FileNotFoundError(
+                f"tokenizer_config.json not found in tokenizer directory: {tokenizer_dir}. "
+                "The directory exists but appears to be incomplete — re-run export.py."
+            )
         self._tokenizer: AutoTokenizer = AutoTokenizer.from_pretrained(
             str(tokenizer_dir),
             use_fast=True,
@@ -218,6 +223,21 @@ def _load_bundle(model_path: Path) -> _SessionBundle:
         raise ValueError(
             f"meta.toml is missing [model] version key: {meta_path}"
         ) from exc
+
+    # Verify the version in .meta.toml matches the version encoded in the
+    # filename. export.py names files as finbert_v{version.replace('.','_')}.onnx,
+    # so finbert_v2_0_0.onnx encodes version "2.0.0". A mismatch means the
+    # wrong .meta.toml was placed alongside this .onnx — hard error (§12.3).
+    stem = model_path.stem  # e.g. "finbert_v2_0_0"
+    if stem.startswith("finbert_v"):
+        version_from_filename = stem[len("finbert_v"):].replace("_", ".")
+        if version_from_filename != model_version:
+            raise ValueError(
+                f"Model/metadata version mismatch: filename encodes version "
+                f"'{version_from_filename}' but {meta_path.name} declares "
+                f"version '{model_version}'. Ensure the correct .meta.toml "
+                f"is co-located with {model_path.name}."
+            )
 
     sess_options = ort.SessionOptions()
     sess_options.graph_optimization_level = (
