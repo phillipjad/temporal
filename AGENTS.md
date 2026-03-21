@@ -360,12 +360,31 @@ Follow the Conventional Commits specification:
 Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `perf`
 Scopes: `engine`, `api`, `sidecar`, `frontend`, `config`, `db`, `infra`
 
+The body must use a bullet list to enumerate individual changes.
+Use nested bullets for sub-context where helpful:
+
+```
+<type>(<scope>): <short summary>
+
+- Change one
+- Change two
+- Change three
+    - Sub-context or clarification for change three
+```
+
 Examples:
 ```
-feat(engine): add SimHash deduplication to DeduplicationFilter
-fix(api): return 403 instead of 500 for role-insufficient admin requests
-refactor(confidence): replace background decay goroutine with lazy read calculation
-test(execution): add RiskGuard test for dual auto-trading flag requirement
+feat(engine): Add SimHash deduplication to DeduplicationFilter
+
+- Add SimHashFilter struct implementing the Deduplicator interface
+- Persist seen hashes to Redis with configurable TTL
+- Wire filter into the ingestion worker pool
+
+fix(api): Return 403 instead of 500 for insufficient-role requests
+
+- Update role-check middleware to return 403 on auth failure
+    - Previously fell through to a 500 due to unhandled error branch
+- Add test cases for each role-restricted endpoint
 ```
 
 #### The Seven Rules of a Great Commit Message
