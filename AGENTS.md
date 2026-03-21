@@ -426,6 +426,13 @@ Every PR must:
 ### 13.3 PR Size
 PRs should be focused. A PR that touches the ingestion layer, the confidence model, the execution layer, and the frontend simultaneously will be rejected. Decompose large changes into sequential, reviewable units.
 
+### 13.4 PR Creation
+When opening a PR, always:
+1. Assign the PR to the author (`--assignee @me`).
+2. Query all repository collaborators via `gh api repos/{owner}/{repo}/collaborators`.
+3. Filter out any accounts of type `Bot` (including GitHub Copilot).
+4. Request a review from every remaining collaborator (`--reviewer <login>`).
+
 ---
 
 ## 14. What Agents Must Never Do
