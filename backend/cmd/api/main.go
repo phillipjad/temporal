@@ -1,7 +1,24 @@
 package main
 
-import "fmt"
+import (
+	"log/slog"
+	"os"
+
+	"temporal/internal/config"
+)
 
 func main() {
-	fmt.Println("temporal api")
+	cfg, err := config.Load()
+	if err != nil {
+		slog.Error("failed to load config", "error", err)
+		os.Exit(1)
+	}
+
+	slog.Info("config loaded",
+		"server_port", cfg.Server.Port,
+		"simulation_mode", cfg.System.SimulationMode,
+	)
+
+	// TODO: initialize API server components (issues #8–#10).
+	_ = cfg
 }

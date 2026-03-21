@@ -1,0 +1,215 @@
+# /opt/temporal/config/temporal_config.toml
+#
+# Example configuration for the Temporal AI engine and API server.
+# Copy this file to /opt/temporal/config/temporal_config.toml and fill in
+# your values. All fields documented below are required unless explicitly
+# marked optional.
+#
+# IMPORTANT: There are no environment variables in this system. Every
+# configuration value lives in this file. Secret values (passwords, private
+# keys) are specified as file paths — the loader reads the file contents at
+# startup and the path string is not retained in application memory.
+
+# ---------------------------------------------------------------------------
+# [server] — HTTP server settings
+# ---------------------------------------------------------------------------
+[server]
+# TCP port the API server listens on. Must be in range [1, 65535].
+port = 8080
+
+# CORS origins allowed to make cross-origin requests. The frontend dev server
+# origin should be listed here in development.
+cors_origins = ["http://localhost:5173"]
+
+# Filesystem path to the compiled frontend bundle. The API server serves these
+# files as static assets under /. Set to "" to disable static serving (e.g.
+# when the frontend is served by a separate CDN or reverse proxy).
+static_dir = "/opt/temporal/frontend/dist"
+
+# ---------------------------------------------------------------------------
+# [auth] — JWT authentication settings
+# ---------------------------------------------------------------------------
+[auth]
+# Path to the RS256 private key (PEM-encoded PKCS#8) used to sign JWTs.
+# The key file is read at startup; the path is not retained in memory.
+jwt_private_key_path = "/opt/temporal/secrets/jwt_key.pem"
+
+# Path to the RS256 public key (PEM-encoded) used to verify JWTs.
+jwt_public_key_path = "/opt/temporal/secrets/jwt_key.pub"
+
+# Lifetime of a short-lived access token in seconds. Default: 900 (15 min).
+access_token_ttl_sec = 900
+
+# Lifetime of a long-lived refresh token in seconds. Default: 604800 (7 days).
+refresh_token_ttl_sec = 604800
+
+# ---------------------------------------------------------------------------
+# [database] — PostgreSQL connection settings
+# ---------------------------------------------------------------------------
+[database]
+# Hostname or IP of the PostgreSQL server (matches Docker service name in
+# Compose deployments).
+host = "postgres"
+
+# PostgreSQL port. Must be in range [1, 65535].
+port = 5432
+
+# Database name.
+name = "temporal"
+
+# Database user.
+user = "temporal"
+
+# Path to a plain-text file containing the database password. The file is
+# read at startup; the path is not retained in memory.
+password_path = "/opt/temporal/secrets/db_password.txt"
+
+# SSL mode for the PostgreSQL connection. Use "require" in production.
+# Accepted values: "disable", "require", "verify-ca", "verify-full".
+ssl_mode = "disable"
+
+# Maximum number of open database connections in the pool.
+max_open_conns = 25
+
+# Maximum number of idle connections kept in the pool.
+max_idle_conns = 5
+
+# Connection timeout in seconds. Startup fails if a connection cannot be
+# established within this window.
+conn_timeout_sec = 5
+
+# ---------------------------------------------------------------------------
+# [redis] — Redis connection settings
+# ---------------------------------------------------------------------------
+[redis]
+# Hostname or IP of the Redis server.
+host = "redis"
+
+# Redis port. Must be in range [1, 65535].
+port = 6379
+
+# Path to a plain-text file containing the Redis password. Set to "" (empty
+# string) if the Redis instance requires no authentication. The file is read
+# at startup when non-empty; the path is not retained in memory.
+password_path = ""   # optional — empty means no auth
+
+# Redis database index (0–15).
+db = 0
+
+# ---------------------------------------------------------------------------
+# [broker.kalshi] — Kalshi prediction-market broker settings
+# ---------------------------------------------------------------------------
+[broker]
+  [broker.kalshi]
+  # Deployment environment. Must be "demo" or "prod".
+  # Setting env="demo" with simulation_mode=false is a hard startup error.
+  env = "demo"
+
+  # Kalshi API key identifier (not a secret; used to identify the signing key).
+  api_key_id = "your-key-id-here"
+
+  # Path to the Kalshi RSA private key file (PEM-encoded PKCS#8). The key is
+  # loaded and parsed at startup; the path is not retained in memory.
+  private_key_path = "/opt/temporal/secrets/kalshi_key.pem"
+
+  # Per-request HTTP timeout in seconds for calls to the Kalshi API.
+  timeout_sec = 5
+
+# ---------------------------------------------------------------------------
+# [ml.sidecar] — FastAPI ML inference sidecar settings
+# ---------------------------------------------------------------------------
+[ml]
+  [ml.sidecar]
+  # Hostname of the FastAPI sidecar service.
+  host = "ml-sidecar"
+
+  # Port the sidecar listens on.
+  port = 8001
+
+  # Hard per-call timeout in milliseconds. The sidecar must respond within
+  # this window or the call is treated as an inference failure.
+  timeout_ms = 50
+
+  # Dynamic batching collection window inside the sidecar (milliseconds).
+  # Concurrent /infer requests are held for this window then dispatched as
+  # a single ONNX batch.
+  batch_window_ms = 8
+
+  # Filesystem path to the ONNX model artifact.
+  model_path = "/opt/temporal/models/lgbm_v1.onnx"
+
+  # Filesystem path to the vocabulary TOML artifact produced by offline training.
+  # The version field in this file must match the version in meta_path.
+  vocab_path = "/opt/temporal/models/lgbm_v1.vocab.toml"
+
+  # Filesystem path to the model metadata TOML artifact produced by offline training.
+  # The version field must match the version in vocab_path — a mismatch is a
+  # hard startup error.
+  meta_path = "/opt/temporal/models/lgbm_v1.meta.toml"
+
+# ---------------------------------------------------------------------------
+# [ingestion] — News ingestion pipeline settings
+# ---------------------------------------------------------------------------
+[ingestion]
+# Number of worker goroutines in the bounded worker pool. Must be in [0, 16].
+# 0 means runtime.NumCPU() workers are started automatically.
+worker_count = 8
+
+# Capacity of the unified article channel that feeds the worker pool.
+unified_buffer_size = 1024
+
+# Maximum random jitter added to each source's poll interval (seconds).
+# Prevents all sources from polling simultaneously.
+poll_jitter_max_sec = 10
+
+  # --- RSS sources ---
+
+  [ingestion.sources.reuters]
+  enabled           = true
+  feed_url          = "https://feeds.reuters.com/reuters/topNews"
+  poll_interval_sec = 60
+
+  [ingestion.sources.ap]
+  enabled           = true
+  feed_url          = "https://rsshub.app/apnews/topics/apf-topnews"
+  poll_interval_sec = 60
+
+  [ingestion.sources.google_news]
+  enabled           = true
+  feed_url          = "https://news.google.com/rss"
+  poll_interval_sec = 30
+
+  # --- REST sources ---
+
+  [ingestion.sources.polygon]
+  enabled           = true
+  # Polygon.io API key (not a file path — polygon credentials are short-lived
+  # and low-risk; the market data API key is not a signing key).
+  api_key           = "your-polygon-key-here"
+  poll_interval_sec = 60
+
+# ---------------------------------------------------------------------------
+# [system] — System-wide operational flags
+# ---------------------------------------------------------------------------
+[system]
+# When true, order submission is simulated — no real orders are sent to
+# Kalshi. This flag must be true during development and testing.
+# Setting this to false with broker.kalshi.env="demo" is a hard startup error.
+simulation_mode = true
+
+# Global emergency kill switch. When true, the RiskGuard blocks all order
+# submission regardless of other flags. Can be toggled via the admin API.
+kill_switch = false
+
+# Maximum number of Kalshi markets the engine may subscribe to simultaneously.
+# Must be <= 100 (v1 limit).
+max_subscribed_markets = 100
+
+# Interval in milliseconds between confidence score threshold checks.
+confidence_check_interval_ms = 100
+
+# Interval in seconds between DB batch flushes for signal and news events.
+db_batch_flush_interval_sec = 5
+
+# Maximum number of events in a single DB batch before a forced flush.
+db_batch_max_size = 500
