@@ -1,0 +1,121 @@
+name: Go CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+defaults:
+  run:
+    working-directory: backend
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache: false
+
+      - name: Cache Go modules and build cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/go
+            ~/.cache/go-build
+          key: go-${{ hashFiles('backend/go.sum') }}
+          restore-keys: go-
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+          working-directory: backend
+
+  vet:
+    name: Vet
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache: false
+
+      - name: Cache Go modules and build cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/go
+            ~/.cache/go-build
+          key: go-${{ hashFiles('backend/go.sum') }}
+          restore-keys: go-
+
+      - run: go vet ./...
+
+  build:
+    name: Build
+    needs: vet
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache: false
+
+      - name: Cache Go modules and build cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/go
+            ~/.cache/go-build
+          key: go-${{ hashFiles('backend/go.sum') }}
+          restore-keys: go-
+
+      - run: go build ./cmd/engine ./cmd/api
+
+  test:
+    name: Test
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache: false
+
+      - name: Cache Go modules and build cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/go
+            ~/.cache/go-build
+          key: go-${{ hashFiles('backend/go.sum') }}
+          restore-keys: go-
+
+      - name: Run unit tests
+        run: go test -v -race -count=1 -covermode=atomic -coverprofile=coverage.out ./...
+
+      - name: Coverage gate (80% per package)
+        run: |
+          FAIL=0
+          for pkg in $(go list ./...); do
+            go test -covermode=atomic -coverprofile=/tmp/c.out "$pkg" 2>/dev/null
+            pct=$(go tool cover -func=/tmp/c.out | tail -1 | awk '{gsub(/%/,""); print $NF}')
+            if [ -n "$pct" ] && awk "BEGIN{exit !($pct+0 < 80)}"; then
+              echo "FAIL: $pkg coverage=${pct}%"
+              FAIL=1
+            fi
+          done
+          exit $FAIL
