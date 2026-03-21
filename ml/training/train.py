@@ -93,7 +93,7 @@ def load_config() -> TrainingConfig:
     )
 
 
-def load_dataset(data_path: Path) -> DatasetDict:
+def load_dataset(data_path: Path, cfg: TrainingConfig) -> DatasetDict:
     """
     Load training data from a JSONL file.
 
@@ -138,7 +138,9 @@ def load_dataset(data_path: Path) -> DatasetDict:
     logger.info("Loaded %d records from %s", len(records), data_path)
 
     dataset = Dataset.from_list(records)
-    split = dataset.train_test_split(test_size=0.1, seed=42, stratify_by_column="label")
+    split = dataset.train_test_split(
+        test_size=cfg.eval_split, seed=cfg.seed, stratify_by_column="label"
+    )
     return DatasetDict({"train": split["train"], "eval": split["test"]})
 
 
@@ -205,7 +207,7 @@ def train(cfg: TrainingConfig) -> Path:
         ignore_mismatched_sizes=True,
     )
 
-    dataset = load_dataset(cfg.data_path)
+    dataset = load_dataset(cfg.data_path, cfg)
     tokenized = tokenize_dataset(dataset, tokenizer, cfg.max_length)
 
     training_args = TrainingArguments(
