@@ -1,3 +1,11 @@
+/*
+ * Tailwind v4 — utilities and theme only.
+ * Preflight (base reset) is intentionally excluded; MUI's CssBaseline
+ * owns base element styling to avoid conflicts.
+ */
+@import "tailwindcss/theme" layer(theme);
+@import "tailwindcss/utilities" layer(utilities);
+
 :root {
   --text: #6b6375;
   --text-h: #08060d;
