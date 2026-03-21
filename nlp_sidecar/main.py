@@ -188,7 +188,7 @@ async def infer(req: InferRequest) -> InferResponse | JSONResponse:
     response_model=HealthResponse,
     summary="Liveness check",
 )
-async def health() -> HealthResponse:
+async def health() -> HealthResponse | JSONResponse:
     """
     Return HTTP 200 when the sidecar is ready to serve requests.
 
