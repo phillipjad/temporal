@@ -12,7 +12,7 @@ Design (from ARCHITECTURE_PLAN.md §6.4):
 
 Threading note:
   FinBERTModel.infer_batch() is a blocking CPU call. It is dispatched via
-  `asyncio.get_event_loop().run_in_executor(None, ...)` so it runs on a
+  `asyncio.get_running_loop().run_in_executor(None, ...)` so it runs on a
   ThreadPoolExecutor thread, keeping the event loop free to accept new
   requests during inference.
 """
@@ -22,7 +22,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from nlp_sidecar.model import FinBERTModel, InferenceResult
 

@@ -40,7 +40,7 @@ logging.basicConfig(
 _CONFIG_PATH = Path("/opt/temporal/config/temporal_config.toml")
 
 
-def _load_config() -> dict:  # type: ignore[type-arg]
+def _load_config() -> dict:  # type: ignore[type-arg]  # tomllib returns dict[str, Any]; Any propagation is intentional here
     if not _CONFIG_PATH.exists():
         raise FileNotFoundError(
             f"Config file not found: {_CONFIG_PATH}. "
