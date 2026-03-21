@@ -50,6 +50,11 @@ export interface components {
         SystemConfig: {
             autoTradingSystemEnabled: boolean;
         };
+        NewsEvent: {
+            id: string;
+            source: string;
+            title: string;
+        };
         WsMessage: {
             /** @enum {string} */
             type: "news_event" | "confidence_update";

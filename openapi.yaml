@@ -1,0 +1,76 @@
+openapi: 3.1.0
+info:
+  title: Temporal AI API
+  version: 1.0.0
+paths:
+  /api/markets:
+    get:
+      summary: List active markets and their current confidence scores
+      operationId: getMarkets
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Market"
+  /api/system/config:
+    get:
+      summary: Get system configuration
+      operationId: getSystemConfig
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SystemConfig"
+
+components:
+  schemas:
+    Market:
+      type: object
+      properties:
+        id:
+          type: string
+        question:
+          type: string
+        confidenceScore:
+          type: number
+      required:
+        - id
+        - question
+        - confidenceScore
+    SystemConfig:
+      type: object
+      properties:
+        autoTradingSystemEnabled:
+          type: boolean
+      required:
+        - autoTradingSystemEnabled
+    NewsEvent:
+      type: object
+      properties:
+        id:
+          type: string
+        source:
+          type: string
+        title:
+          type: string
+      required:
+        - id
+        - source
+        - title
+    WsMessage:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [news_event, confidence_update]
+        payload:
+          type: object
+      required:
+        - type
+        - payload
