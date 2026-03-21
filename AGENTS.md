@@ -459,3 +459,4 @@ This section is a checklist. Before submitting any change, verify that none of t
 - [ ] Silently discarded an error return value
 - [ ] Used `any` in TypeScript without narrowing
 - [ ] Allowed the confirmation phrase check in `AutoTradingToggle` to be bypassed
+- [ ] Modified any files in the `backend/` directory when assigned a frontend-scoped task. Frontend work must strictly be confined to the `frontend/` folder.
