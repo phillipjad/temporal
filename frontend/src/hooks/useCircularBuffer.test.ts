@@ -1,9 +1,9 @@
-import { renderHook, act } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
-import { useCircularBuffer } from './useCircularBuffer';
+import { renderHook, act } from "@testing-library/react";
+import { describe, it, expect } from "vitest";
+import { useCircularBuffer } from "./useCircularBuffer";
 
-describe('useCircularBuffer', () => {
-  it('should maintain buffer up to capacity', () => {
+describe("useCircularBuffer", () => {
+  it("should maintain buffer up to capacity", () => {
     const { result } = renderHook(() => useCircularBuffer<number>(3));
 
     // Initial state
@@ -23,7 +23,7 @@ describe('useCircularBuffer', () => {
     expect(result.current.buffer).toEqual([2, 3, 4]);
   });
 
-  it('should clear buffer', () => {
+  it("should clear buffer", () => {
     const { result } = renderHook(() => useCircularBuffer<number>(3));
     act(() => {
       result.current.push([1, 2, 3]);
