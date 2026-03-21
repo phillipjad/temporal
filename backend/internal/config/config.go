@@ -423,12 +423,7 @@ func (raw *rawConfig) resolve() (*Config, error) {
 
 	sources := make(map[string]SourceConfig, len(raw.Ingestion.Sources))
 	for name, s := range raw.Ingestion.Sources {
-		sources[name] = SourceConfig{
-			Enabled:         s.Enabled,
-			FeedURL:         s.FeedURL,
-			APIKey:          s.APIKey,
-			PollIntervalSec: s.PollIntervalSec,
-		}
+		sources[name] = SourceConfig(s)
 	}
 
 	return &Config{
