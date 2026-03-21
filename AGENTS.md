@@ -368,6 +368,16 @@ refactor(confidence): replace background decay goroutine with lazy read calculat
 test(execution): add RiskGuard test for dual auto-trading flag requirement
 ```
 
+#### The Seven Rules of a Great Commit Message
+
+1. **Separate subject from body with a blank line**
+2. **Limit the subject line to 50 characters**
+3. **Capitalize the subject line**
+4. **Do not end the subject line with a period**
+5. **Use the imperative mood in the subject line** — write "Fix bug" not "Fixed bug" or "Fixes bug"
+6. **Wrap the body at 72 characters**
+7. **Use the body to explain what and why, not how**
+
 ### 13.2 PR Requirements
 Every PR must:
 - Pass `golangci-lint run ./...` with zero warnings
