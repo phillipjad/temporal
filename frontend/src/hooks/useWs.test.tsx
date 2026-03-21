@@ -8,10 +8,12 @@ import React from "react";
 const mockWsInstances: MockWebSocket[] = [];
 
 class MockWebSocket {
+  url: string;
   onmessage: ((event: unknown) => void) | null = null;
   close = vi.fn();
 
-  constructor(public url: string) {
+  constructor(url: string) {
+    this.url = url;
     mockWsInstances.push(this);
   }
 }

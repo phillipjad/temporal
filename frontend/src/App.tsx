@@ -57,7 +57,7 @@ export default function App() {
 
         {uiVisibility && (
           <Grid container spacing={3}>
-            <Grid item xs={12} md={8}>
+            <Grid size={{ xs: 12, md: 8 }}>
               <Box sx={{ mb: 2 }}>
                 <Typography variant="h5" component="h2" fontWeight="medium">
                   Active Markets & Confidence
@@ -102,7 +102,7 @@ export default function App() {
               )}
             </Grid>
 
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <Box sx={{ mb: 2 }}>
                 <Typography variant="h5" component="h2" fontWeight="medium">
                   Risk Engine
