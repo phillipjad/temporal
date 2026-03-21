@@ -245,6 +245,26 @@ The `AutoTradingToggle` component must always require a two-step confirmation. D
 
 ---
 
+### 8.0 TDD Workflow (Required)
+
+All feature and bug-fix work follows a strict test-driven development cycle:
+
+1. **Write tests first.** Before writing any implementation code, write a comprehensive test suite that covers:
+   - **Happy paths** — the expected behaviour under normal inputs
+   - **Edge cases** — boundary values, empty inputs, off-by-one conditions, nil/zero values, maximum allowed values
+   - **Error paths** — invalid inputs, dependency failures, context cancellation
+   - **Benchmarks (Go)** — `Benchmark*` functions for any hot-path code (ingestion pipeline, confidence scoring, sidecar calls)
+
+2. **Confirm tests fail.** Run the suite and verify every new test fails before implementation exists. A test that passes before implementation is not testing anything real.
+
+3. **Implement to satisfy the tests.** Write the minimum implementation needed to make the full suite pass. Do not write implementation beyond what the tests require.
+
+4. **All tests must pass before a PR is opened.** No failing tests, no skipped tests without an explicit `t.Skip` comment explaining why.
+
+**"Within reason"** means: trivial one-liner wrappers, scaffolding commits, and pure data-structure definitions do not require a test-first cycle. When in doubt, write the test first.
+
+---
+
 ## 8. Testing Requirements
 
 ### 8.1 Go
