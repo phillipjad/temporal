@@ -28,7 +28,6 @@ from __future__ import annotations
 
 import argparse
 import logging
-import shutil
 import tomllib
 from pathlib import Path
 
