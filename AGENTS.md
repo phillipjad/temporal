@@ -25,13 +25,13 @@ This file is the authoritative guide for any AI agent or automated tool working 
 
 ## 1. Project Overview
 
-Temporal AI is an automated prediction market trading system. It ingests news from RSS and REST sources, extracts text features, runs ML inference via a FastAPI sidecar, maintains rolling per-market confidence scores, and submits orders to Kalshi when confidence crosses configured thresholds.
+Temporal AI is an automated prediction market trading system. It ingests news from RSS and REST sources, prepares article text, runs ML inference via a FastAPI sidecar, maintains rolling per-market confidence scores, and submits orders to Kalshi when confidence crosses configured thresholds.
 
 The full architecture is documented in `ARCHITECTURE_PLAN.md`. Read it. This file (AGENTS.md) governs *how* to work in the codebase. The architecture document governs *what* the system does and why.
 
 **Language stack:**
 - Go 1.22+ — core engine and API server (`cmd/engine`, `cmd/api`, `internal/`)
-- Python 3.11 — ML sidecar only (`ml/sidecar/`, `ml/training/`)
+- Python 3.14 (free-threaded) — ML sidecar only (`nlp_sidecar/`, `ml/training/`)
 - TypeScript + React 18 + Vite — frontend (`frontend/`)
 
 ---
@@ -49,7 +49,7 @@ temporal-ai/
 ├── internal/                 ← all shared Go packages
 ├── api/generated.go          ← DO NOT EDIT (generated)
 ├── api/handler/              ← Chi route handler implementations
-├── ml/sidecar/               ← FastAPI inference server
+├── nlp_sidecar/              ← FastAPI inference server
 ├── ml/training/              ← offline training pipeline
 ├── frontend/src/
 │   ├── lib/api.types.ts      ← DO NOT EDIT (generated)
@@ -59,7 +59,7 @@ temporal-ai/
 │   ├── hooks/
 │   └── stores/
 ├── migrations/               ← golang-migrate SQL files
-├── models/                   ← .onnx, .vocab.toml, .meta.toml artifacts
+├── models/                   ← .onnx, finbert_vN/tokenizer/, .meta.toml artifacts
 ├── config/
 │   └── temporal_config.example.toml
 └── secrets/                  ← gitignored
@@ -99,18 +99,21 @@ Before any real (non-simulated) order is submitted, code must verify that BOTH `
 ## 4. Architecture Constraints
 
 ### 4.1 The ML Sidecar Has a Hard Responsibility Boundary
-`ml/sidecar/` knows about feature vectors and probability arrays. It must not import or reference anything about markets, orders, users, confidence scores, or trading logic. If you find yourself adding market-aware logic to the sidecar, you are in the wrong place.
+`nlp_sidecar/` knows about text, tokenisation, and probability arrays. It must not import or reference anything about markets, orders, users, confidence scores, or trading logic. If you find yourself adding market-aware logic to the sidecar, you are in the wrong place.
 
-### 4.2 Interfaces Are the Extension Points
+### 4.2 Tokenisation Is a Sidecar Concern, Not a Go Concern
+The Go engine sends raw Unicode-normalised text to the sidecar. All tokenisation (WordPiece segmentation, padding, truncation, attention masks) happens inside `nlp_sidecar/model.py` using the HuggingFace `AutoTokenizer`. Do not add a tokeniser, vocabulary file lookup, or any subword processing to Go code. The `TFIDFVectorizer` interface and `.vocab.toml` artifacts have been removed and must not be re-introduced.
+
+### 4.3 Interfaces Are the Extension Points
 Every external dependency is behind a Go interface. When adding a new broker, news source, or storage backend, create a new struct that satisfies the existing interface. Do not modify the interface unless the required functionality cannot be expressed through it — in that case, open a discussion in the PR rather than silently extending it.
 
-### 4.3 Worker Pool, Not Per-Event Goroutines
+### 4.4 Worker Pool, Not Per-Event Goroutines
 Do not spawn goroutines per news article. All article processing goes through the bounded worker pool in `internal/news/`. The pool size is controlled by `[ingestion] worker_count` in the config file.
 
-### 4.4 Lazy Confidence Decay
+### 4.5 Lazy Confidence Decay
 Confidence scores are decayed lazily on read, not on a background tick. The raw `SignalWeight` list is stored in Redis. Score recalculation happens in `ConfidenceStore.GetScore()`. Do not add a background goroutine that ticks through all markets applying decay.
 
-### 4.5 Shutdown Order Is Fixed
+### 4.6 Shutdown Order Is Fixed
 The shutdown sequence in `cmd/engine/main.go` must follow the order defined in `ARCHITECTURE_PLAN.md §4.4`. Do not reorder steps. Steps 1–3 (stop ingestion, drain channel, drain workers) must complete before steps 5–9 (flush, close connections).
 
 ---
@@ -168,27 +171,42 @@ See Section 8 for testing requirements. Test files live alongside the code they 
 The sidecar is a narrow, purpose-built inference server. Keep it that way.
 
 ### 6.1 Style
-- Python 3.11+. Managed exclusively with `uv`. Do not use `pip`, `pip-tools`, `poetry`, or `conda` anywhere in the sidecar or training directories.
+- Python 3.14+ (free-threaded). Managed exclusively with `uv`. Do not use `pip`, `pip-tools`, `poetry`, or `conda` anywhere in the sidecar or training directories.
 - `uv run ruff check` (linting) and `uv run ruff format` (formatting) are mandatory. `black` is not used — `ruff format` is the canonical formatter. All code must pass both before merge.
 - Type annotations are mandatory on all function signatures. Use `from __future__ import annotations` at the top of every file.
 - `mypy --strict` must pass. Invoke as `uv run mypy`. Do not use `# type: ignore` without a comment.
 
 ### 6.2 Structure
-The sidecar consists of exactly three modules:
+The sidecar (`nlp_sidecar/`) consists of exactly three modules:
 - `main.py` — FastAPI app, endpoint definitions, startup/shutdown lifecycle
-- `model.py` — ONNX session lifecycle, hot-reload logic, version validation
+- `model.py` — FinBERT ONNX session lifecycle, HuggingFace tokenizer management, hot-reload logic
 - `batching.py` — dynamic batch collection and dispatch
+
+The training pipeline consists of exactly two scripts:
+- `ml/training/train.py` — fine-tunes `ProsusAI/finbert` on a labelled CSV; saves PyTorch weights and tokenizer
+- `ml/training/export.py` — exports fine-tuned weights to ONNX; writes `.meta.toml`; runs verification pass
 
 Do not add modules or expand responsibilities without updating `ARCHITECTURE_PLAN.md`.
 
-### 6.3 Error Handling
-- Inference errors are returned as HTTP 500 with a structured JSON body: `{ "error": "<message>", "request_id": "<uuid>" }`.
-- A failed batch does not crash the server. Errors are returned per-request within the batch.
-- Startup validation failures (model/vocab version mismatch, ONNX session load failure) must exit with a non-zero code and a clear stderr message.
+### 6.3 Model Artifacts
+The sidecar loads two categories of artifact at startup:
 
-### 6.4 Concurrency
+| Artifact | Path pattern | Purpose |
+|---|---|---|
+| ONNX model | `finbert_vN.onnx` | Runtime inference via `onnxruntime` |
+| Tokenizer directory | `finbert_vN/tokenizer/` | HuggingFace `AutoTokenizer`; loaded once, never reloaded |
+| Metadata TOML | `finbert_vN.meta.toml` | Version, base model, training metrics |
+
+A version mismatch between `finbert_vN.onnx` and `finbert_vN.meta.toml` is a **hard startup error**. The tokenizer is not reloaded during a hot-swap — it is shared across FinBERT versions. Do not add `.vocab.toml` or any TF-IDF vocabulary file — these were part of the removed LightGBM pipeline and must not be re-introduced.
+
+### 6.4 Error Handling
+- Inference errors are returned as HTTP 500 with a structured JSON body: `{ "error": "<message>", "request_id": "<uuid>" }`.
+- A failed batch does not crash the server. Errors are returned per-request within the batch by resolving each future with the exception.
+- Startup validation failures (model/metadata version mismatch, ONNX session load failure, missing tokenizer directory) must exit with a non-zero code and a clear stderr message.
+
+### 6.5 Concurrency
 - The sidecar is async throughout. Do not mix sync and async code in the hot path.
-- ONNX `InferenceSession.run()` is synchronous and must be called in `asyncio.get_event_loop().run_in_executor()` with a dedicated thread pool to avoid blocking the event loop.
+- ONNX `InferenceSession.run()` is synchronous and CPU-bound. It must be called via `asyncio.get_event_loop().run_in_executor()` to avoid blocking the event loop. See `model.py::run_infer_in_executor`.
 
 ---
 
@@ -227,8 +245,6 @@ The `AutoTradingToggle` component must always require a two-step confirmation. D
 
 ---
 
-## 8. Testing Requirements
-
 ### 8.0 TDD Workflow (Required)
 
 All feature and bug-fix work follows a strict test-driven development cycle:
@@ -247,6 +263,10 @@ All feature and bug-fix work follows a strict test-driven development cycle:
 
 **"Within reason"** means: trivial one-liner wrappers, scaffolding commits, and pure data-structure definitions do not require a test-first cycle. When in doubt, write the test first.
 
+---
+
+## 8. Testing Requirements
+
 ### 8.1 Go
 - All public functions in `internal/` must have unit tests.
 - All interface implementations must have a mock generated via `mockery` or hand-written, stored in `internal/<package>/mocks/`.
@@ -257,8 +277,9 @@ All feature and bug-fix work follows a strict test-driven development cycle:
 
 ### 8.2 Python (Sidecar)
 - `uv run pytest` for all tests. Tests live in `ml/sidecar/tests/`.
-- The ONNX session must be mockable in unit tests — do not construct a real session in unit tests.
-- Test the batch collector logic independently of the ONNX session.
+- The ONNX session and HuggingFace tokenizer must be mockable in unit tests — do not construct a real session or load real model weights in unit tests.
+- Test the batch collector logic (`DynamicBatcher`) independently of the ONNX session.
+- Test that `FinBERTModel.reload()` atomically swaps the session without raising on in-flight calls.
 
 ### 8.3 TypeScript
 - `pnpm vitest` for unit tests. `@testing-library/react` for component tests.
@@ -276,7 +297,10 @@ Regardless of coverage percentage, these specific behaviors must have explicit t
 | `ConfidenceStore.AddSignal` Lua script atomicity (concurrent writes) | `internal/confidence/` |
 | Shutdown sequence drains the worker channel before closing Postgres | `cmd/engine/` |
 | Config loader returns hard error on missing required key paths | `internal/config/` |
-| Config loader returns hard error on model/vocab version mismatch | `internal/config/` |
+| Config loader returns hard error on model/metadata version mismatch | `internal/config/` |
+| Config loader returns hard error on missing tokenizer directory | `internal/config/` |
+| `DynamicBatcher` resolves all pending futures with an error when the batch processor crashes | `ml/sidecar/tests/` |
+| `FinBERTModel.reload()` swaps session atomically without interrupting in-flight calls | `ml/sidecar/tests/` |
 | `AutoTradingToggle` confirm button is disabled until exact phrase is typed | `frontend/src/components/` |
 | WS batched flush does not trigger while `document.hidden` is true | `frontend/src/hooks/` |
 
@@ -378,42 +402,13 @@ Follow the Conventional Commits specification:
 Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `perf`
 Scopes: `engine`, `api`, `sidecar`, `frontend`, `config`, `db`, `infra`
 
-The body must use a bullet list to enumerate individual changes.
-Use nested bullets for sub-context where helpful:
-
-```
-<type>(<scope>): <short summary>
-
-- Change one
-- Change two
-- Change three
-    - Sub-context or clarification for change three
-```
-
 Examples:
 ```
-feat(engine): Add SimHash deduplication to DeduplicationFilter
-
-- Add SimHashFilter struct implementing the Deduplicator interface
-- Persist seen hashes to Redis with configurable TTL
-- Wire filter into the ingestion worker pool
-
-fix(api): Return 403 instead of 500 for insufficient-role requests
-
-- Update role-check middleware to return 403 on auth failure
-    - Previously fell through to a 500 due to unhandled error branch
-- Add test cases for each role-restricted endpoint
+feat(sidecar): replace LightGBM with FinBERT ONNX inference
+fix(api): return 403 instead of 500 for role-insufficient admin requests
+refactor(confidence): replace background decay goroutine with lazy read calculation
+test(execution): add RiskGuard test for dual auto-trading flag requirement
 ```
-
-#### The Seven Rules of a Great Commit Message
-
-1. **Separate subject from body with a blank line**
-2. **Limit the subject line to 50 characters**
-3. **Capitalize the subject line**
-4. **Do not end the subject line with a period**
-5. **Use the imperative mood in the subject line** — write "Fix bug" not "Fixed bug" or "Fixes bug"
-6. **Wrap the body at 72 characters**
-7. **Use the body to explain what and why, not how**
 
 ### 13.2 PR Requirements
 Every PR must:
@@ -423,6 +418,7 @@ Every PR must:
 - Pass `pnpm tsc --noEmit` with zero errors
 - Pass `pnpm eslint src/` with zero errors (run from `frontend/`)
 - Pass `uv run ruff check` and `uv run ruff format --check` with zero errors (run from `ml/`)
+- Pass `uv run mypy .` with zero errors (run from `ml/sidecar/` and `ml/training/`)
 - Not decrease per-package coverage below 80%
 - Include updated `ARCHITECTURE_PLAN.md` if any architectural decision has changed
 - Regenerate and commit generated files if `openapi.yaml` changed
@@ -441,12 +437,13 @@ This section is a checklist. Before submitting any change, verify that none of t
 - [ ] Edited `api/generated.go`, `api.types.ts`, or `api.client.ts` by hand
 - [ ] Added cross-boundary type definitions outside `openapi.yaml`
 - [ ] Added order-submission logic outside an `ExecutionBroker` implementation
-- [ ] Added inference logic outside `ml/sidecar/`
+- [ ] Added inference logic outside `nlp_sidecar/`
 - [ ] Added ONNX, CGo ML bindings, or any ML library to the Go binary
+- [ ] Added a TF-IDF vectorizer, vocabulary file (`.vocab.toml`), or any tokenisation logic to Go code
+- [ ] Added market/user/order awareness to the ML sidecar
 - [ ] Set `fsync=off` anywhere
 - [ ] Downgraded durability on the `orders` table
 - [ ] Simplified the auto-trading check to a single flag
-- [ ] Added market/user/order awareness to the ML sidecar
 - [ ] Added an unbounded array to React state for a real-time data series
 - [ ] Called `setState` directly from a WebSocket `onmessage` handler
 - [ ] Stored a secret value inline in a config file, source file, or log statement

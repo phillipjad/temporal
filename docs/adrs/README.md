@@ -16,6 +16,7 @@ The canonical source for the rationale behind each decision was originally `ARCH
 | [ADR-006](ADR-006-rss-polygon-news-ingestion.md) | RSS + Polygon Free Tier for News Ingestion | Accepted |
 | [ADR-007](ADR-007-contract-first-openapi.md) | Contract-First Development via OpenAPI 3.1 | Accepted |
 | [ADR-008](ADR-008-hardcoded-config-path-toml-no-envvars.md) | Hardcoded Config Path, TOML Format, Zero Environment Variables | Accepted |
+| [ADR-009](ADR-009-go-sends-raw-text-tokenisation-is-sidecar-concern.md) | Go Sends Raw Text to Sidecar; Tokenisation Is a Sidecar Concern | Accepted |
 
 ## Format
 

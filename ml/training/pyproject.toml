@@ -1,0 +1,57 @@
+[project]
+name = "temporal-ml-training"
+version = "1.0.0"
+description = "Offline FinBERT fine-tuning and ONNX export pipeline for Temporal AI"
+requires-python = ">=3.11"
+
+dependencies = [
+    # PyTorch — required for fine-tuning and ONNX export
+    "torch>=2.2.0",
+
+    # HuggingFace ecosystem
+    "transformers>=4.41.0",
+    "datasets>=2.19.0",
+
+    # Evaluation metrics
+    "scikit-learn>=1.4.0",
+
+    # ONNX graph validation (export.py verification pass)
+    "onnx>=1.16.0",
+
+    # ORT inference pass in export.py verification
+    "onnxruntime>=1.18.0",
+
+    # TOML writing for .meta.toml artifact
+    "tomli-w>=1.0.0",
+
+    # Numerical backend
+    "numpy>=1.26.0",
+
+    # TOML parsing (stdlib tomllib available in 3.11+; no extra dep needed)
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.4.0",
+    "mypy>=1.10.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "PLW", "ANN"]
+ignore = [
+    "ANN101",  # missing type annotation for `self`
+    "ANN102",  # missing type annotation for `cls`
+]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+ignore_missing_imports = true

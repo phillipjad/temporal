@@ -1,9 +1,13 @@
 import { useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import type { components } from "../lib/api.types";
+
+type WsMessage = components["schemas"]["WsMessage"];
+type NewsEvent = components["schemas"]["NewsEvent"];
 
 export function useWs(url: string) {
   const queryClient = useQueryClient();
-  const bufferRef = useRef<unknown[]>([]);
+  const bufferRef = useRef<WsMessage[]>([]);
 
   useEffect(() => {
     // Only attempt connection if we have a URL
@@ -14,27 +18,37 @@ export function useWs(url: string) {
     ws.addEventListener('message', (event) => {
       try {
         // Parse the message and push it to the buffer ref
-        // to avoid calling setState directly on the WebSocket event wrapper
-        const msg = JSON.parse(event.data);
+        // to avoid calling setState directly on the WebSocket event handler
+        const msg = JSON.parse(event.data) as WsMessage;
         bufferRef.current.push(msg);
       } catch (e) {
         console.error("Failed to parse WS message", e);
       }
     });
 
-    // Fast 200ms batched interval (ADR constraint)
+    // Batched 200ms flush interval (ARCHITECTURE_PLAN.md §13.6)
     const interval = setInterval(() => {
-      // Suspend component updates if the document is hidden
+      // Suspend flush while the tab is hidden (AGENTS.md §7.5)
       if (document.hidden) return;
 
-      if (bufferRef.current.length > 0) {
-        const messages = [...bufferRef.current];
-        bufferRef.current = [];
+      if (bufferRef.current.length === 0) return;
 
-        // Apply events to query data
-        // Example: queryClient.invalidateQueries(...)
-        // Further mapping happens here against specific domains
-        console.debug("Flushed WS messages:", messages);
+      const messages = [...bufferRef.current];
+      bufferRef.current = [];
+
+      const newsItems = messages
+        .filter((m) => m.type === "news_event")
+        .map((m) => m.payload as NewsEvent);
+
+      if (newsItems.length > 0) {
+        window.dispatchEvent(
+          new CustomEvent<NewsEvent[]>("temporal:news_event", { detail: newsItems })
+        );
+      }
+
+      const hasConfidenceUpdate = messages.some((m) => m.type === "confidence_update");
+      if (hasConfidenceUpdate) {
+        queryClient.invalidateQueries({ queryKey: ["markets"] });
       }
     }, 200);
 
