@@ -31,6 +31,7 @@ import logging
 import re
 import tomllib
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import onnx
@@ -50,7 +51,7 @@ _MAX_TOKEN_LENGTH = 512
 _OPSET_VERSION = 17
 
 
-def load_config() -> dict:  # type: ignore[type-arg]
+def load_config() -> dict[str, Any]:
     if not _CONFIG_PATH.exists():
         raise FileNotFoundError(f"Config not found: {_CONFIG_PATH}")
     with _CONFIG_PATH.open("rb") as fh:
@@ -203,7 +204,7 @@ def _write_meta(meta_path: Path, version: str, onnx_filename: str) -> None:
     A sidecar that loads an .onnx without a matching .meta.toml will
     refuse to start.
     """
-    meta: dict = {  # type: ignore[type-arg]
+    meta: dict[str, Any] = {
         "model": {
             "version": version,
             "onnx_file": onnx_filename,
