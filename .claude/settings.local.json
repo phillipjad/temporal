@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rm uv.lock)",
+      "Bash(uv sync:*)"
+    ]
+  }
+}
