@@ -56,6 +56,13 @@ class FinBERTModel:
     bundle at the top of each call and use it for the duration, so a
     concurrent reload cannot invalidate an in-flight batch.
 
+    Thread-safety under free-threaded Python 3.14+: `bundle = self._bundle`
+    is a single pointer load, which is atomic at the hardware level on all
+    supported architectures. The loaded reference always points to a fully
+    initialised _SessionBundle (construction completes before the lock is
+    acquired in reload()). This reasoning does not rely on the GIL and
+    holds under Python 3.14 free-threaded builds.
+
     ProsusAI/finbert label order: 0=negative (bearish), 1=neutral, 2=positive (bullish).
     This is remapped to the API contract (bullish, bearish, neutral) before returning.
     """

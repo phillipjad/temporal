@@ -1,11 +1,11 @@
 # Temporal AI — Architecture Plan
 
-> **Language stack:** Go 1.22+ (backend) · Python 3.11 + FastAPI (ML sidecar) · React 18 + TypeScript + Vite (frontend)
+> **Language stack:** Go 1.22+ (backend) · Python 3.14 (free-threaded) + FastAPI (ML sidecar) · React 18 + TypeScript + Vite (frontend)
 > **Deployment target:** Containerized (Docker Compose local, OCI-compatible for cloud registries)
 > **Design philosophy:** Interfaces first, implementations second. Every external dependency sits behind an abstraction boundary. All safety controls are non-bypassable at the type-system level.
 
 ---
- 
+
 ## Table of Contents
 
 1. [Key Architectural Decisions (ADRs)](#1-key-architectural-decisions)
@@ -35,7 +35,7 @@
 **Rationale:** Kalshi is CFTC-regulated, transacts in standard USD (no crypto wallet complexity), and exposes a well-documented REST + WebSocket API. Polymarket requires USDC and on-chain wallet integration — significantly higher operational risk for v1. The `ExecutionBroker` interface makes any future broker a drop-in without touching core logic.
 
 ### ADR-002: ML Inference Runs in a FastAPI Sidecar Using FinBERT
-**Decision:** ML inference runs in a dedicated Python 3.11 + FastAPI process, co-located in Docker Compose. The Go engine communicates with it over localhost HTTP. The `MLModel` interface in Go abstracts the transport entirely. The model is **FinBERT** (`ProsusAI/finbert`), a BERT-based transformer pre-trained on financial news corpora and fine-tuned for three-class sentiment (bullish / bearish / neutral), exported to ONNX for runtime inference.
+**Decision:** ML inference runs in a dedicated Python 3.14 (free-threaded) + FastAPI process, co-located in Docker Compose. The Go engine communicates with it over localhost HTTP. The `MLModel` interface in Go abstracts the transport entirely. The model is **FinBERT** (`ProsusAI/finbert`), a BERT-based transformer pre-trained on financial news corpora and fine-tuned for three-class sentiment (bullish / bearish / neutral), exported to ONNX for runtime inference.
 **Rationale:** FinBERT provides strong domain-specific semantic understanding that TF-IDF bag-of-words models cannot match. It handles negation, paraphrase, and financial terminology correctly out of the box due to its pre-training corpus. The sidecar accumulates requests over a short collection window (5–10ms) and processes them as a single vectorised ONNX batch. This also allows independent model hot-reload, independent scaling, and keeps the Go binary free of CGo dependencies. The `MLModel` interface is the clean boundary should the sidecar ever need to be replaced.
 
 **Latency budget for the sidecar path (CPU deployment):**
@@ -74,6 +74,8 @@
 ### ADR-009: Go Sends Raw Text to Sidecar; Tokenisation Is a Sidecar Concern
 **Decision:** The Go engine performs only Unicode NFKC normalisation and concatenates article title and body before sending the result as a plain text string to the sidecar's `/infer` endpoint. The sidecar owns all tokenisation and truncation logic using the HuggingFace `AutoTokenizer` for the FinBERT vocabulary.
 **Rationale:** FinBERT's WordPiece tokeniser is a Python-native component with no clean Go port. Keeping tokenisation in the sidecar avoids duplicating vocabulary management across languages, ensures tokenisation is always consistent with the model that consumes it, and removes the need for any model-specific artifact (`.vocab.toml`) to be loaded by the Go engine. The Go feature-extraction layer is now model-agnostic.
+
+> See standalone record: [`docs/adrs/ADR-009-go-sends-raw-text-tokenisation-is-sidecar-concern.md`](adrs/ADR-009-go-sends-raw-text-tokenisation-is-sidecar-concern.md)
 
 ---
 

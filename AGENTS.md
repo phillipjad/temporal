@@ -31,7 +31,7 @@ The full architecture is documented in `ARCHITECTURE_PLAN.md`. Read it. This fil
 
 **Language stack:**
 - Go 1.22+ — core engine and API server (`cmd/engine`, `cmd/api`, `internal/`)
-- Python 3.11 — ML sidecar only (`ml/sidecar/`, `ml/training/`)
+- Python 3.14 (free-threaded) — ML sidecar only (`nlp_sidecar/`, `ml/training/`)
 - TypeScript + React 18 + Vite — frontend (`frontend/`)
 
 ---
@@ -49,7 +49,7 @@ temporal-ai/
 ├── internal/                 ← all shared Go packages
 ├── api/generated.go          ← DO NOT EDIT (generated)
 ├── api/handler/              ← Chi route handler implementations
-├── ml/sidecar/               ← FastAPI inference server
+├── nlp_sidecar/              ← FastAPI inference server
 ├── ml/training/              ← offline training pipeline
 ├── frontend/src/
 │   ├── lib/api.types.ts      ← DO NOT EDIT (generated)
@@ -99,10 +99,10 @@ Before any real (non-simulated) order is submitted, code must verify that BOTH `
 ## 4. Architecture Constraints
 
 ### 4.1 The ML Sidecar Has a Hard Responsibility Boundary
-`ml/sidecar/` knows about text, tokenisation, and probability arrays. It must not import or reference anything about markets, orders, users, confidence scores, or trading logic. If you find yourself adding market-aware logic to the sidecar, you are in the wrong place.
+`nlp_sidecar/` knows about text, tokenisation, and probability arrays. It must not import or reference anything about markets, orders, users, confidence scores, or trading logic. If you find yourself adding market-aware logic to the sidecar, you are in the wrong place.
 
 ### 4.2 Tokenisation Is a Sidecar Concern, Not a Go Concern
-The Go engine sends raw Unicode-normalised text to the sidecar. All tokenisation (WordPiece segmentation, padding, truncation, attention masks) happens inside `ml/sidecar/model.py` using the HuggingFace `AutoTokenizer`. Do not add a tokeniser, vocabulary file lookup, or any subword processing to Go code. The `TFIDFVectorizer` interface and `.vocab.toml` artifacts have been removed and must not be re-introduced.
+The Go engine sends raw Unicode-normalised text to the sidecar. All tokenisation (WordPiece segmentation, padding, truncation, attention masks) happens inside `nlp_sidecar/model.py` using the HuggingFace `AutoTokenizer`. Do not add a tokeniser, vocabulary file lookup, or any subword processing to Go code. The `TFIDFVectorizer` interface and `.vocab.toml` artifacts have been removed and must not be re-introduced.
 
 ### 4.3 Interfaces Are the Extension Points
 Every external dependency is behind a Go interface. When adding a new broker, news source, or storage backend, create a new struct that satisfies the existing interface. Do not modify the interface unless the required functionality cannot be expressed through it — in that case, open a discussion in the PR rather than silently extending it.
@@ -171,13 +171,13 @@ See Section 8 for testing requirements. Test files live alongside the code they 
 The sidecar is a narrow, purpose-built inference server. Keep it that way.
 
 ### 6.1 Style
-- Python 3.11+. Managed exclusively with `uv`. Do not use `pip`, `pip-tools`, `poetry`, or `conda` anywhere in the sidecar or training directories.
+- Python 3.14+ (free-threaded). Managed exclusively with `uv`. Do not use `pip`, `pip-tools`, `poetry`, or `conda` anywhere in the sidecar or training directories.
 - `uv run ruff check` (linting) and `uv run ruff format` (formatting) are mandatory. `black` is not used — `ruff format` is the canonical formatter. All code must pass both before merge.
 - Type annotations are mandatory on all function signatures. Use `from __future__ import annotations` at the top of every file.
 - `mypy --strict` must pass. Invoke as `uv run mypy`. Do not use `# type: ignore` without a comment.
 
 ### 6.2 Structure
-The sidecar consists of exactly three modules:
+The sidecar (`nlp_sidecar/`) consists of exactly three modules:
 - `main.py` — FastAPI app, endpoint definitions, startup/shutdown lifecycle
 - `model.py` — FinBERT ONNX session lifecycle, HuggingFace tokenizer management, hot-reload logic
 - `batching.py` — dynamic batch collection and dispatch
@@ -417,7 +417,7 @@ This section is a checklist. Before submitting any change, verify that none of t
 - [ ] Edited `api/generated.go`, `api.types.ts`, or `api.client.ts` by hand
 - [ ] Added cross-boundary type definitions outside `openapi.yaml`
 - [ ] Added order-submission logic outside an `ExecutionBroker` implementation
-- [ ] Added inference logic outside `ml/sidecar/`
+- [ ] Added inference logic outside `nlp_sidecar/`
 - [ ] Added ONNX, CGo ML bindings, or any ML library to the Go binary
 - [ ] Added a TF-IDF vectorizer, vocabulary file (`.vocab.toml`), or any tokenisation logic to Go code
 - [ ] Added market/user/order awareness to the ML sidecar
