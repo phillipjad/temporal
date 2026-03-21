@@ -63,11 +63,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     model_path: str = sidecar_cfg.get(
         "model_path", "/opt/temporal/models/finbert_v1.onnx"
     )
+    tokenizer_path: str = sidecar_cfg.get(
+        "tokenizer_path", "/opt/temporal/models/tokenizer"
+    )
     window_ms: float = float(sidecar_cfg.get("batch_window_ms", 8.0))
     max_batch: int = int(sidecar_cfg.get("max_batch_size", 32))
 
     logger.info("Loading FinBERT model from: %s", model_path)
-    _model = FinBERTModel(model_path)
+    _model = FinBERTModel(model_path, tokenizer_path)
     _batcher = DynamicBatcher(_model, window_ms=window_ms, max_batch_size=max_batch)
     await _batcher.start()
 

@@ -297,16 +297,15 @@ FinBERT hits the right tradeoff for this domain: strong semantic understanding o
 
 ```
 Labelled financial news CSV  (columns: text, label)
-    → train.py: fine-tune ProsusAI/finbert  →  finbert_vN/  (PyTorch weights)
-                                            →  finbert_vN/tokenizer/  (HuggingFace tokenizer)
-                                            →  finbert_vN/training_metrics.json
+    → train.py: fine-tune ProsusAI/finbert  →  finbert_ft/  (PyTorch weights + tokenizer)
     → export.py: torch.onnx.export         →  finbert_vN.onnx
                  ONNX verification pass    →  finbert_vN.meta.toml
+                 tokenizer copy            →  tokenizer/  (shared; not version-specific)
 ```
 
 Two artifacts are versioned together (`finbert_vN.onnx`, `finbert_vN.meta.toml`). A version mismatch between these is a **hard startup error** in the sidecar.
 
-The tokenizer lives under `finbert_vN/tokenizer/` and is loaded once at sidecar startup. It is not an ONNX artifact and is not reloaded during hot-swap — the tokenizer vocabulary is stable across FinBERT model versions.
+The tokenizer lives at a single shared path (configured via `[ml.sidecar] tokenizer_path`, default: `/opt/temporal/models/tokenizer/`). It is loaded once at sidecar startup and is not reloaded during hot-swap — the tokenizer vocabulary is stable across FinBERT model versions. The tokenizer path is independent of the versioned ONNX filename.
 
 **Training data schema (`news_labelled.csv`):**
 
@@ -784,7 +783,7 @@ db            = 0
   batch_window_ms   = 8     # dynamic batching collection window inside sidecar
   max_batch_size    = 32    # maximum articles per ONNX batch call
   model_path        = "/opt/temporal/models/finbert_v1.onnx"
-  tokenizer_path    = "/opt/temporal/models/finbert_v1/tokenizer"  # HuggingFace tokenizer dir
+  tokenizer_path    = "/opt/temporal/models/tokenizer"  # shared across model versions; not version-specific
   meta_path         = "/opt/temporal/models/finbert_v1.meta.toml"
 
 [ingestion]

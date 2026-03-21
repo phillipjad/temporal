@@ -70,18 +70,19 @@ class FinBERTModel:
     This is remapped to the API contract (bullish, bearish, neutral) before returning.
     """
 
-    def __init__(self, model_path: str | Path) -> None:
+    def __init__(self, model_path: str | Path, tokenizer_path: str | Path) -> None:
         self._lock = threading.Lock()
         path = Path(model_path)
 
-        # Load the tokenizer once here. It is never reloaded — it is shared
-        # across all FinBERT versions (AGENTS.md §6.3).
-        tokenizer_dir = path.parent / "tokenizer"
+        # Load the tokenizer once here from the explicitly supplied path.
+        # It is never reloaded — it is shared across all FinBERT versions
+        # (AGENTS.md §6.3). The path comes from [ml.sidecar] tokenizer_path
+        # in temporal_config.toml, not derived from the model path.
+        tokenizer_dir = Path(tokenizer_path)
         if not tokenizer_dir.is_dir():
             raise FileNotFoundError(
                 f"Tokenizer directory not found: {tokenizer_dir}. "
-                "The HuggingFace tokenizer files must be placed in a "
-                "'tokenizer/' subdirectory alongside the .onnx file."
+                "Set [ml.sidecar] tokenizer_path in temporal_config.toml."
             )
         self._tokenizer: AutoTokenizer = AutoTokenizer.from_pretrained(
             str(tokenizer_dir),
