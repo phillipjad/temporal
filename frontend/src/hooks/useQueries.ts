@@ -7,7 +7,7 @@ export function useMarkets() {
     queryKey: ["markets"],
     queryFn: async () => {
       try {
-        const { data, error } = await apiClient.GET("/api/markets");
+        const { data, error } = await apiClient.GET("/api/v1/markets");
         if (error) throw new Error("Failed to fetch markets");
         return data || [];
       } catch (err) {
@@ -23,7 +23,7 @@ export function useSystemConfig() {
     queryKey: ["systemConfig"],
     queryFn: async () => {
       try {
-        const { data, error } = await apiClient.GET("/api/system/config");
+        const { data, error } = await apiClient.GET("/api/v1/config");
         if (error) throw new Error("Failed to fetch system config");
         return data || { autoTradingSystemEnabled: false };
       } catch (err) {
