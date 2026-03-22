@@ -267,16 +267,19 @@ type LoginResponseRole string
 
 // Market defines model for Market.
 type Market struct {
-	Category    *string    `json:"category,omitempty"`
-	CloseTime   *time.Time `json:"closeTime,omitempty"`
-	Description *string    `json:"description,omitempty"`
+	Category  *string    `json:"category,omitempty"`
+	CloseTime *time.Time `json:"closeTime,omitempty"`
+
+	// ConfidenceScore System-computed confidence score for this market. Populated when the market has an active subscription.
+	ConfidenceScore *float32 `json:"confidenceScore,omitempty"`
+	Description     *string  `json:"description,omitempty"`
 
 	// Id Kalshi market ticker/ID.
 	Id          string       `json:"id"`
 	LastUpdated time.Time    `json:"lastUpdated"`
 	NoPrice     float32      `json:"noPrice"`
+	Question    string       `json:"question"`
 	Status      MarketStatus `json:"status"`
-	Title       string       `json:"title"`
 	Volume      *float32     `json:"volume,omitempty"`
 	YesPrice    float32      `json:"yesPrice"`
 }

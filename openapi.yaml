@@ -834,12 +834,12 @@ components:
 
     Market:
       type: object
-      required: [id, title, status, yesPrice, noPrice, lastUpdated]
+      required: [id, question, status, yesPrice, noPrice, lastUpdated]
       properties:
         id:
           type: string
           description: Kalshi market ticker/ID.
-        title:
+        question:
           type: string
         description:
           type: string
@@ -865,6 +865,14 @@ components:
           type: number
           format: float
           minimum: 0.0
+        confidenceScore:
+          type: number
+          format: float
+          minimum: -1.0
+          maximum: 1.0
+          description: >
+            System-computed confidence score for this market.
+            Populated when the market has an active subscription.
         lastUpdated:
           type: string
           format: date-time
@@ -1072,6 +1080,20 @@ components:
           type: string
           minLength: 1
 
+    # ── News event ───────────────────────────────────────────────────────────
+
+    NewsEvent:
+      type: object
+      required: [id, source, title]
+      properties:
+        id:
+          type: string
+          format: uuid
+        source:
+          type: string
+        title:
+          type: string
+
     # ── WebSocket message discriminated union ─────────────────────────────────
 
     WsMessage:
@@ -1081,6 +1103,7 @@ components:
         - $ref: "#/components/schemas/WsOrderUpdate"
         - $ref: "#/components/schemas/WsSignalEvent"
         - $ref: "#/components/schemas/WsSystemAlert"
+        - $ref: "#/components/schemas/WsNewsEvent"
       discriminator:
         propertyName: type
         mapping:
@@ -1089,6 +1112,7 @@ components:
           order_update: "#/components/schemas/WsOrderUpdate"
           signal_event: "#/components/schemas/WsSignalEvent"
           system_alert: "#/components/schemas/WsSystemAlert"
+          news_event: "#/components/schemas/WsNewsEvent"
 
     WsConfidenceUpdate:
       type: object
@@ -1181,3 +1205,13 @@ components:
         ts:
           type: string
           format: date-time
+
+    WsNewsEvent:
+      type: object
+      required: [type, payload]
+      properties:
+        type:
+          type: string
+          enum: [news_event]
+        payload:
+          $ref: "#/components/schemas/NewsEvent"

@@ -418,7 +418,7 @@ export interface components {
     Market: {
       /** @description Kalshi market ticker/ID. */
       id: string;
-      title: string;
+      question: string;
       description?: string;
       category?: string;
       /** Format: date-time */
@@ -431,6 +431,11 @@ export interface components {
       noPrice: number;
       /** Format: float */
       volume?: number;
+      /**
+       * Format: float
+       * @description System-computed confidence score for this market. Populated when the market has an active subscription.
+       */
+      confidenceScore?: number;
       /** Format: date-time */
       lastUpdated: string;
     };
@@ -521,12 +526,19 @@ export interface components {
     ReloadModelRequest: {
       modelPath: string;
     };
+    NewsEvent: {
+      /** Format: uuid */
+      id: string;
+      source: string;
+      title: string;
+    };
     WsMessage:
       | components["schemas"]["WsConfidenceUpdate"]
       | components["schemas"]["WsStrategyOutput"]
       | components["schemas"]["WsOrderUpdate"]
       | components["schemas"]["WsSignalEvent"]
-      | components["schemas"]["WsSystemAlert"];
+      | components["schemas"]["WsSystemAlert"]
+      | components["schemas"]["WsNewsEvent"];
     WsConfidenceUpdate: {
       /**
        * @description discriminator enum property added by openapi-typescript
@@ -590,6 +602,14 @@ export interface components {
       message: string;
       /** Format: date-time */
       ts: string;
+    };
+    WsNewsEvent: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: "news_event";
+      payload: components["schemas"]["NewsEvent"];
     };
   };
   responses: {
