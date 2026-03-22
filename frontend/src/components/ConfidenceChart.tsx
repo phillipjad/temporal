@@ -27,7 +27,7 @@ export function ConfidenceChart({
   const theme = useTheme();
 
   return (
-    <Box sx={{ width: "100%", height: 300, mt: 2 }}>
+    <Box sx={{ width: "100%", height: "18.75rem", mt: 2 }}>
       <Typography variant="h6" gutterBottom>
         Rolling Confidence
       </Typography>

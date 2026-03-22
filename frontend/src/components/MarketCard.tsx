@@ -36,7 +36,7 @@ export function MarketCard({ market }: { market: Market }) {
         <LinearProgress
           variant="determinate"
           value={market.confidenceScore * 100}
-          sx={{ height: 8, borderRadius: 4, bgcolor: "divider" }}
+          sx={{ height: "0.5rem", borderRadius: "0.25rem", bgcolor: "divider" }}
           color={
             market.confidenceScore >= 0.7
               ? "success"

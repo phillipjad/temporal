@@ -130,7 +130,7 @@ export default function App() {
                 </Box>
 
                 {loadingMarkets ? (
-                  <Skeleton variant="rounded" height={96} />
+                  <Skeleton variant="rounded" height="6rem" />
                 ) : markets.length === 0 ? (
                   <Box
                     sx={{
@@ -168,7 +168,7 @@ export default function App() {
                     Risk Controls
                   </Typography>
                   {loadingConfig ? (
-                    <Skeleton variant="rounded" height={200} />
+                    <Skeleton variant="rounded" height="12.5rem" />
                   ) : (
                     <AutoTradingToggle
                       currentStatus={
