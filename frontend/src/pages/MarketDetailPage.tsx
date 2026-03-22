@@ -1,13 +1,9 @@
 import { useEffect, useState } from "react";
 import { Box, Typography } from "@mui/material";
-import {
-  ConfidenceChart,
-  ConfidenceDatapoint,
-} from "../components/ConfidenceChart";
-import {
-  ContributingSignalList,
-  Signal,
-} from "../components/ContributingSignalList";
+import { ConfidenceChart } from "../components/ConfidenceChart";
+import type { ConfidenceDatapoint } from "../components/ConfidenceChart";
+import { ContributingSignalList } from "../components/ContributingSignalList";
+import type { Signal } from "../components/ContributingSignalList";
 import { useCircularBuffer } from "../hooks/useCircularBuffer";
 
 export function MarketDetailPage({ marketId }: { marketId: string }) {
@@ -33,7 +29,7 @@ export function MarketDetailPage({ marketId }: { marketId: string }) {
       if (Math.random() > 0.8) {
         setSignals((prev) => [
           {
-            id: crypto.randomUUID(),
+            id: Math.random().toString(36).substring(7),
             timestamp: new Date().toLocaleTimeString(),
             source: "Mock Source",
             impact: score > 0 ? 0.05 : -0.05,
