@@ -22,7 +22,7 @@ import logging
 import tomllib
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import AsyncGenerator
+from typing import Any, AsyncGenerator
 
 from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import JSONResponse
@@ -40,7 +40,7 @@ logging.basicConfig(
 _CONFIG_PATH = Path("/opt/temporal/config/temporal_config.toml")
 
 
-def _load_config() -> dict:  # type: ignore[type-arg]  # tomllib returns dict[str, Any]; Any propagation is intentional here
+def _load_config() -> dict[str, Any]:
     if not _CONFIG_PATH.exists():
         raise FileNotFoundError(
             f"Config file not found: {_CONFIG_PATH}. "
