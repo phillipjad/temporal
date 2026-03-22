@@ -6,31 +6,26 @@
 @import "tailwindcss/theme" layer(theme);
 @import "tailwindcss/utilities" layer(utilities);
 
-:root {
-  /* Kept for global #root boundary since MUI ThemeProvider only applies inside React tree */
-  --border: #e5e4e7;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --border: #2e303a;
-  }
-}
-
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-}
-
-/* These typography styles are mostly managed by MUI now, but keep minimal resets */
 body {
   margin: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  width: 100%;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Subtle pulse animation for the live indicator dot */
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
 }

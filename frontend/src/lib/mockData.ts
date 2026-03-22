@@ -1,40 +1,55 @@
 import type { components } from "./api.types";
+
 type Market = components["schemas"]["Market"];
-type NewsEvent = components["schemas"]["NewsEvent"];
+type WsSignalEvent = components["schemas"]["WsSignalEvent"];
 
 export const mockMarkets: Market[] = [
   {
-    id: "MKT-1",
-    question: "Will Ethereum reach $5k by end of year?",
-    confidenceScore: 0.85,
+    id: "KXETH-25-5K",
+    title: "Will Ethereum reach $5k by end of 2025?",
+    status: "open",
+    yesPrice: 0.85,
+    noPrice: 0.15,
+    lastUpdated: new Date().toISOString(),
   },
   {
-    id: "MKT-2",
-    question: "Will the Fed cut rates in May 2026?",
-    confidenceScore: 0.45,
+    id: "KXFED-RATE-MAY26",
+    title: "Will the Fed cut rates in May 2026?",
+    status: "open",
+    yesPrice: 0.45,
+    noPrice: 0.55,
+    lastUpdated: new Date().toISOString(),
   },
   {
-    id: "MKT-3",
-    question: "Will generic AI achieve AGI by 2029?",
-    confidenceScore: 0.65,
+    id: "KXAI-AGI-2029",
+    title: "Will a general AI achieve AGI by 2029?",
+    status: "open",
+    yesPrice: 0.32,
+    noPrice: 0.68,
+    lastUpdated: new Date().toISOString(),
   },
 ];
 
-export const mockNews: NewsEvent[] = [
+export const mockSignals: WsSignalEvent[] = [
   {
-    id: "N-1",
+    type: "signal_event",
+    marketId: "KXETH-25-5K",
+    netSignal: 0.62,
     source: "Bloomberg",
-    title: "Federal Reserve signals potential rate cut ahead",
+    ts: new Date().toISOString(),
   },
   {
-    id: "N-2",
+    type: "signal_event",
+    marketId: "KXFED-RATE-MAY26",
+    netSignal: -0.31,
     source: "Reuters",
-    title:
-      "Tech stocks rally as AI models show unprecedented benchmark results",
+    ts: new Date().toISOString(),
   },
   {
-    id: "N-3",
+    type: "signal_event",
+    marketId: "KXAI-AGI-2029",
+    netSignal: 0.18,
     source: "CoinDesk",
-    title: "Ethereum validators see record staking yields this quarter",
+    ts: new Date().toISOString(),
   },
 ];

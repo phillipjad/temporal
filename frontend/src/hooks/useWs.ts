@@ -3,22 +3,19 @@ import { useQueryClient } from "@tanstack/react-query";
 import type { components } from "../lib/api.types";
 
 type WsMessage = components["schemas"]["WsMessage"];
-type NewsEvent = components["schemas"]["NewsEvent"];
+type WsSignalEvent = components["schemas"]["WsSignalEvent"];
 
 export function useWs(url: string) {
   const queryClient = useQueryClient();
   const bufferRef = useRef<WsMessage[]>([]);
 
   useEffect(() => {
-    // Only attempt connection if we have a URL
     if (!url) return;
 
     const ws = new WebSocket(url);
 
     ws.addEventListener("message", (event) => {
       try {
-        // Parse the message and push it to the buffer ref
-        // to avoid calling setState directly on the WebSocket event handler
         const msg = JSON.parse(event.data) as WsMessage;
         bufferRef.current.push(msg);
       } catch (e) {
@@ -38,14 +35,14 @@ export function useWs(url: string) {
 
       console.debug("Flushed WS messages:", messages);
 
-      const newsItems = messages
-        .filter((m) => m.type === "news_event")
-        .map((m) => m.payload as unknown as NewsEvent);
+      const signalItems = messages
+        .filter((m): m is WsSignalEvent => m.type === "signal_event")
+        .map((m) => m);
 
-      if (newsItems.length > 0) {
+      if (signalItems.length > 0) {
         window.dispatchEvent(
-          new CustomEvent<NewsEvent[]>("temporal:news_event", {
-            detail: newsItems,
+          new CustomEvent<WsSignalEvent[]>("temporal:signal_event", {
+            detail: signalItems,
           }),
         );
       }
@@ -55,6 +52,7 @@ export function useWs(url: string) {
       );
       if (hasConfidenceUpdate) {
         queryClient.invalidateQueries({ queryKey: ["markets"] });
+        queryClient.invalidateQueries({ queryKey: ["confidence"] });
       }
     }, 200);
 

@@ -18,16 +18,20 @@ export function useMarkets() {
   });
 }
 
+// Returns the user's per-account trading config mapped to the shape expected
+// by AutoTradingToggle (autoTradingSystemEnabled).
 export function useSystemConfig() {
   return useQuery({
     queryKey: ["systemConfig"],
     queryFn: async () => {
       try {
         const { data, error } = await apiClient.GET("/api/v1/config");
-        if (error) throw new Error("Failed to fetch system config");
-        return data || { autoTradingSystemEnabled: false };
+        if (error) throw new Error("Failed to fetch config");
+        return {
+          autoTradingSystemEnabled: data?.autoTradingEnabled ?? false,
+        };
       } catch (err) {
-        console.warn("Backend unavailable, using mock config...", err);
+        console.warn("Backend unavailable, defaulting config...", err);
         return { autoTradingSystemEnabled: false };
       }
     },
