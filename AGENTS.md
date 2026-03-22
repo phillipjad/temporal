@@ -376,8 +376,8 @@ The following files are generated and must not be edited by hand:
 
 | File | Generator | Regenerate with |
 |---|---|---|
-| `api/generated.go` | `oapi-codegen` | `go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest -config oapi-codegen.yaml openapi.yaml` |
-| `frontend/src/lib/api.types.ts` | `openapi-typescript` | `pnpm dlx openapi-typescript openapi.yaml -o frontend/src/lib/api.types.ts` |
+| `api/generated.go` | `oapi-codegen` | `cd backend && go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest -config ../oapi-codegen.yaml ../openapi.yaml` |
+| `frontend/src/lib/api.types.ts` | `openapi-typescript` | `pnpm dlx openapi-typescript openapi.yaml -o frontend/src/lib/api.types.ts` (run from repo root) |
 | `frontend/src/lib/api.client.ts` | `openapi-fetch` | regenerated alongside `api.types.ts` (same invocation) |
 
 If a type in a generated file appears incorrect, the fix goes in `openapi.yaml`. Do not patch the generated file.

@@ -1,7 +1,8 @@
-# ADR-007: Contract-First Development via OpenAPI 3.1
+# ADR-007: Contract-First Development via OpenAPI 3.0.3
 
 **Status:** Accepted
 **Date:** 2026-03-21
+**Amended:** 2026-03-22 — downgraded spec version from 3.1 to 3.0.3
 
 ---
 
@@ -11,7 +12,9 @@ The system has two consumers of its HTTP/WebSocket API: the Go engine itself (in
 
 ## Decision
 
-All HTTP request/response shapes and WebSocket message payloads are defined in a single `openapi.yaml` committed at the repository root. This file is the authoritative source of truth.
+All HTTP request/response shapes and WebSocket message payloads are defined in a single `openapi.yaml` (OpenAPI **3.0.3**) committed at the repository root. This file is the authoritative source of truth.
+
+**Version note:** The spec uses OpenAPI 3.0.3, not 3.1. `oapi-codegen` (the Go code generator) does not yet fully support OpenAPI 3.1 — its 3.1 path lacks support for the `type: [string, "null"]` array syntax used for nullable fields. 3.0.3 is used instead, with `nullable: true` for optional nullable properties. `openapi-typescript` (the TypeScript generator) supports both versions.
 
 Types are generated from this spec:
 
