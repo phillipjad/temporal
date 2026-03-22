@@ -8,7 +8,7 @@ import { useCircularBuffer } from "../hooks/useCircularBuffer";
 
 export function MarketDetailPage({ marketId }: { marketId: string }) {
   const { buffer: chartData, push } =
-    useCircularBuffer<ConfidenceDatapoint>(50);
+    useCircularBuffer<ConfidenceDatapoint>(500);
   const [signals, setSignals] = useState<Signal[]>([]);
 
   // Simulated data stream for the UI update
