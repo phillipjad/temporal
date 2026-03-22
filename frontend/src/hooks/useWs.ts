@@ -15,7 +15,7 @@ export function useWs(url: string) {
 
     const ws = new WebSocket(url);
 
-    ws.addEventListener('message', (event) => {
+    ws.addEventListener("message", (event) => {
       try {
         // Parse the message and push it to the buffer ref
         // to avoid calling setState directly on the WebSocket event handler
@@ -36,17 +36,23 @@ export function useWs(url: string) {
       const messages = [...bufferRef.current];
       bufferRef.current = [];
 
+      console.debug("Flushed WS messages:", messages);
+
       const newsItems = messages
         .filter((m) => m.type === "news_event")
-        .map((m) => m.payload as NewsEvent);
+        .map((m) => m.payload as unknown as NewsEvent);
 
       if (newsItems.length > 0) {
         window.dispatchEvent(
-          new CustomEvent<NewsEvent[]>("temporal:news_event", { detail: newsItems })
+          new CustomEvent<NewsEvent[]>("temporal:news_event", {
+            detail: newsItems,
+          }),
         );
       }
 
-      const hasConfidenceUpdate = messages.some((m) => m.type === "confidence_update");
+      const hasConfidenceUpdate = messages.some(
+        (m) => m.type === "confidence_update",
+      );
       if (hasConfidenceUpdate) {
         queryClient.invalidateQueries({ queryKey: ["markets"] });
       }

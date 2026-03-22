@@ -26,7 +26,13 @@ export function NewsFeed({ news }: { news: NewsEvent[] }) {
           {news.map((item, idx) => (
             <Card key={`${item.id}-${idx}`} variant="outlined">
               <CardContent sx={{ pb: "16px !important" }}>
-                <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    mb: 1,
+                  }}
+                >
                   <Chip label={item.source} size="small" variant="outlined" />
                   <Typography variant="caption" color="text.secondary">
                     Just now

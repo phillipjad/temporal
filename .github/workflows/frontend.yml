@@ -1,0 +1,62 @@
+name: Frontend CI
+
+on:
+  push:
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend.yml"
+  pull_request:
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend.yml"
+
+jobs:
+  validate:
+    name: Lint, Typecheck, Test, Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Format check
+        run: pnpm run format:check
+
+      - name: Typecheck and Lint
+        run: |
+          pnpm run typecheck &
+          PID_TSC=$!
+          pnpm run lint &
+          PID_LINT=$!
+          wait $PID_TSC
+          STATUS_TSC=$?
+          wait $PID_LINT
+          STATUS_LINT=$?
+          if [ $STATUS_TSC -ne 0 ] || [ $STATUS_LINT -ne 0 ]; then
+            echo "Typecheck or Lint failed"
+            exit 1
+          fi
+
+      - name: Unit Tests
+        run: pnpm run test
+
+      - name: Build
+        run: pnpm run build

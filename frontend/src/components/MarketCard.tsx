@@ -1,10 +1,16 @@
-import { Card, CardContent, Box, Typography, Chip, LinearProgress } from "@mui/material";
+import {
+  Card,
+  CardContent,
+  Box,
+  Typography,
+  Chip,
+  LinearProgress,
+} from "@mui/material";
 import type { components } from "../lib/api.types";
 
 type Market = components["schemas"]["Market"];
 
 export function MarketCard({ market }: { market: Market }) {
-
   return (
     <Card variant="outlined" sx={{ mb: 2 }}>
       <CardContent>
