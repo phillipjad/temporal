@@ -63,9 +63,9 @@
 **Decision:** Poll-based ingestion via RSS/Atom feeds and the Polygon.io free REST tier. No webhook-based ingestion.
 **Rationale:** The target sources do not offer authenticated webhook delivery on their free tiers. RSS polling with configurable intervals and per-source token bucket rate limiting achieves near-real-time ingestion at zero cost.
 
-### ADR-007: Contract-First Development via OpenAPI 3.1
-**Decision:** All HTTP and WebSocket message shapes are defined in a single `openapi.yaml` committed at the repository root. Go server types and TypeScript client types are both generated from this spec. Hand-written type definitions for cross-service data are prohibited.
-**Rationale:** Eliminates the entire class of client/server type-drift bugs. The spec is the authoritative source of truth; generated code is an artifact, never a source file.
+### ADR-007: Contract-First Development via OpenAPI 3.0.3
+**Decision:** All HTTP and WebSocket message shapes are defined in a single `openapi.yaml` (OpenAPI 3.0.3) committed at the repository root. Go server types and TypeScript client types are both generated from this spec. Hand-written type definitions for cross-service data are prohibited.
+**Rationale:** Eliminates the entire class of client/server type-drift bugs. The spec is the authoritative source of truth; generated code is an artifact, never a source file. OpenAPI 3.0.3 is used instead of 3.1 because `oapi-codegen` does not yet fully support 3.1 (specifically the `type: [string, "null"]` nullable array syntax). Nullable fields use `nullable: true` (3.0 convention). See ADR-007 for the full rationale.
 
 ### ADR-008: Hardcoded Config Path, TOML Format, Zero Environment Variables
 **Decision:** All configuration lives in a single TOML file at the fixed path `/opt/temporal/config/temporal_config.toml`. This path is hardcoded in the binary. There are no environment variables in this system.
@@ -656,6 +656,7 @@ A single multiplexed WebSocket connection per client carries all real-time event
 | `order_update` | `{ order_id, status, ts }` |
 | `signal_event` | `{ market_id, net_signal, source, ts }` |
 | `system_alert` | `{ level, message, ts }` |
+| `news_event` | `{ payload: { id, source, title } }` |
 
 ---
 
@@ -673,7 +674,16 @@ A single multiplexed WebSocket connection per client carries all real-time event
 | TypeScript type definitions | `openapi-typescript` | `frontend/src/lib/api.types.ts` |
 | TypeScript fetch client | `openapi-fetch` | `frontend/src/lib/api.client.ts` |
 
-Generated files are committed to the repository. `make generate` regenerates them. CI enforces that generated files are not out of sync with `openapi.yaml` — a diff fails the build.
+Generated files are committed to the repository. The generation commands below regenerate them. CI enforces that generated files are not out of sync with `openapi.yaml` — a diff fails the build.
+
+```sh
+# Run from the backend/ directory
+cd backend && go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest \
+    -config ../oapi-codegen.yaml ../openapi.yaml
+
+# Run from the repo root
+pnpm dlx openapi-typescript openapi.yaml -o frontend/src/lib/api.types.ts
+```
 
 ### 11.3 WebSocket Types in the Spec
 
@@ -690,19 +700,29 @@ components:
         - $ref: '#/components/schemas/WsOrderUpdate'
         - $ref: '#/components/schemas/WsSignalEvent'
         - $ref: '#/components/schemas/WsSystemAlert'
+        - $ref: '#/components/schemas/WsNewsEvent'
       discriminator:
         propertyName: type
+        mapping:
+          confidence_update: '#/components/schemas/WsConfidenceUpdate'
+          strategy_output:   '#/components/schemas/WsStrategyOutput'
+          order_update:      '#/components/schemas/WsOrderUpdate'
+          signal_event:      '#/components/schemas/WsSignalEvent'
+          system_alert:      '#/components/schemas/WsSystemAlert'
+          news_event:        '#/components/schemas/WsNewsEvent'
 
     WsConfidenceUpdate:
       type: object
-      required: [type, market_id, score, ts]
+      required: [type, marketId, score, ts]
       properties:
-        type:      { type: string, enum: [confidence_update] }
-        market_id: { type: string }
-        score:     { type: number, format: float, minimum: -1.0, maximum: 1.0 }
-        ts:        { type: string, format: date-time }
+        type:     { type: string, enum: [confidence_update] }
+        marketId: { type: string }
+        score:    { type: number, format: float, minimum: -1.0, maximum: 1.0 }
+        ts:       { type: string, format: date-time }
     # ... one schema per message type
 ```
+
+The explicit `mapping` block is required — `openapi-typescript` 7.x needs it to generate narrowed string literal types for the discriminator field rather than a plain `string`.
 
 The TypeScript compiler enforces that every `switch (message.type)` in the frontend handles all variants exhaustively.
 
@@ -1475,10 +1495,12 @@ cd frontend && pnpm prettier --check src/
 
 **Code generation (run after editing openapi.yaml):**
 ```sh
-go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest \
-    -config oapi-codegen.yaml openapi.yaml
+# Go types — run from backend/ so the module and relative output path resolve correctly
+cd backend && go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest \
+    -config ../oapi-codegen.yaml ../openapi.yaml
 
-cd frontend && pnpm dlx openapi-typescript openapi.yaml -o src/lib/api.types.ts
+# TypeScript types — run from repo root
+pnpm dlx openapi-typescript openapi.yaml -o frontend/src/lib/api.types.ts
 ```
 
 **Database migrations:**

@@ -171,9 +171,7 @@ export default function App() {
                     <Skeleton variant="rounded" height="12.5rem" />
                   ) : (
                     <AutoTradingToggle
-                      currentStatus={
-                        systemConfig?.autoTradingSystemEnabled ?? false
-                      }
+                      currentStatus={systemConfig?.autoTradingEnabled ?? false}
                       onToggle={toggleAutoTrading}
                     />
                   )}

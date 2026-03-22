@@ -6,16 +6,28 @@ export const mockMarkets: Market[] = [
   {
     id: "MKT-1",
     question: "Will Ethereum reach $5k by end of year?",
+    status: "open",
+    yesPrice: 0.85,
+    noPrice: 0.15,
+    lastUpdated: new Date().toISOString(),
     confidenceScore: 0.85,
   },
   {
     id: "MKT-2",
     question: "Will the Fed cut rates in May 2026?",
+    status: "open",
+    yesPrice: 0.45,
+    noPrice: 0.55,
+    lastUpdated: new Date().toISOString(),
     confidenceScore: 0.45,
   },
   {
     id: "MKT-3",
     question: "Will generic AI achieve AGI by 2029?",
+    status: "open",
+    yesPrice: 0.65,
+    noPrice: 0.35,
+    lastUpdated: new Date().toISOString(),
     confidenceScore: 0.65,
   },
 ];
