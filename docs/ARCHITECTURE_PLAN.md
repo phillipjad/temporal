@@ -656,6 +656,7 @@ A single multiplexed WebSocket connection per client carries all real-time event
 | `order_update` | `{ order_id, status, ts }` |
 | `signal_event` | `{ market_id, net_signal, source, ts }` |
 | `system_alert` | `{ level, message, ts }` |
+| `news_event` | `{ payload: { id, source, title } }` |
 
 ---
 
@@ -699,6 +700,7 @@ components:
         - $ref: '#/components/schemas/WsOrderUpdate'
         - $ref: '#/components/schemas/WsSignalEvent'
         - $ref: '#/components/schemas/WsSystemAlert'
+        - $ref: '#/components/schemas/WsNewsEvent'
       discriminator:
         propertyName: type
         mapping:
@@ -707,6 +709,7 @@ components:
           order_update:      '#/components/schemas/WsOrderUpdate'
           signal_event:      '#/components/schemas/WsSignalEvent'
           system_alert:      '#/components/schemas/WsSystemAlert'
+          news_event:        '#/components/schemas/WsNewsEvent'
 
     WsConfidenceUpdate:
       type: object
