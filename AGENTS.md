@@ -410,7 +410,38 @@ refactor(confidence): replace background decay goroutine with lazy read calculat
 test(execution): add RiskGuard test for dual auto-trading flag requirement
 ```
 
-### 13.2 PR Requirements
+### 13.2 Local CI Verification (Required Before Every Push)
+
+All CI checks must be run and pass locally before pushing any commit to the remote. Do not push code that has not been verified locally. Pushing unverified code that breaks CI is not acceptable.
+
+Run the full check suite for the layers you touched:
+
+**Go (backend)**
+```bash
+golangci-lint run ./...
+go vet ./...
+go test ./...
+```
+
+**TypeScript / React (frontend)** — run from `frontend/`
+```bash
+pnpm tsc --noEmit
+pnpm eslint src/
+pnpm prettier --check src/
+pnpm vitest run
+```
+
+**Python (sidecar / training)** — run from `ml/`
+```bash
+uv run ruff check
+uv run ruff format --check
+uv run mypy .
+uv run pytest
+```
+
+Only push after every applicable check above exits with zero errors.
+
+### 13.3 PR Requirements
 Every PR must:
 - Pass `golangci-lint run ./...` with zero warnings
 - Pass `go vet ./...` with zero errors
@@ -423,10 +454,10 @@ Every PR must:
 - Include updated `ARCHITECTURE_PLAN.md` if any architectural decision has changed
 - Regenerate and commit generated files if `openapi.yaml` changed
 
-### 13.3 PR Size
+### 13.4 PR Size
 PRs should be focused. A PR that touches the ingestion layer, the confidence model, the execution layer, and the frontend simultaneously will be rejected. Decompose large changes into sequential, reviewable units.
 
-### 13.4 PR Creation
+### 13.5 PR Creation
 When opening a PR, always:
 1. Assign the PR to the author (`--assignee @me`).
 2. Query all repository collaborators via `gh api repos/{owner}/{repo}/collaborators`.
