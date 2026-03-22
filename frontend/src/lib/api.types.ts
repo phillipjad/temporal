@@ -4,1216 +4,1221 @@
  */
 
 export interface paths {
-    "/api/v1/auth/login": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Authenticate and obtain tokens */
-        post: operations["login"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+  "/api/v1/auth/login": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/auth/refresh": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Refresh access token using httpOnly refresh token cookie */
-        post: operations["refreshToken"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Authenticate and obtain tokens */
+    post: operations["login"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/auth/refresh": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/auth/logout": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Revoke refresh token and clear cookie */
-        post: operations["logout"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Refresh access token using httpOnly refresh token cookie */
+    post: operations["refreshToken"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/auth/logout": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/markets": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List markets available on Kalshi */
-        get: operations["listMarkets"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Revoke refresh token and clear cookie */
+    post: operations["logout"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/markets": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/markets/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get a single market by its Kalshi ID */
-        get: operations["getMarket"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** List markets available on Kalshi */
+    get: operations["listMarkets"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/markets/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/subscriptions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List the caller's market subscriptions */
-        get: operations["listSubscriptions"];
-        put?: never;
-        /** Subscribe to a market */
-        post: operations["createSubscription"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Get a single market by its Kalshi ID */
+    get: operations["getMarket"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/subscriptions": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/subscriptions/{market_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Unsubscribe from a market */
-        delete: operations["deleteSubscription"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** List the caller's market subscriptions */
+    get: operations["listSubscriptions"];
+    put?: never;
+    /** Subscribe to a market */
+    post: operations["createSubscription"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/subscriptions/{market_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/confidence": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List confidence scores for all subscribed markets */
-        get: operations["listConfidence"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    post?: never;
+    /** Unsubscribe from a market */
+    delete: operations["deleteSubscription"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/confidence": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/confidence/{market_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get confidence score for a specific subscribed market */
-        get: operations["getConfidence"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** List confidence scores for all subscribed markets */
+    get: operations["listConfidence"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/confidence/{market_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/orders": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List orders for the authenticated user */
-        get: operations["listOrders"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Get confidence score for a specific subscribed market */
+    get: operations["getConfidence"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/orders": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/orders/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get a single order by ID */
-        get: operations["getOrder"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** List orders for the authenticated user */
+    get: operations["listOrders"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/orders/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/positions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List open positions for the authenticated user */
-        get: operations["listPositions"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Get a single order by ID */
+    get: operations["getOrder"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/positions": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/config": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get the authenticated user's trading configuration */
-        get: operations["getConfig"];
-        /** Replace the authenticated user's trading configuration */
-        put: operations["updateConfig"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** List open positions for the authenticated user */
+    get: operations["listPositions"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/config": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/admin/users": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List all users (admin only) */
-        get: operations["adminListUsers"];
-        put?: never;
-        /** Create a new user (admin only) */
-        post: operations["adminCreateUser"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Get the authenticated user's trading configuration */
+    get: operations["getConfig"];
+    /** Replace the authenticated user's trading configuration */
+    put: operations["updateConfig"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/admin/users": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/admin/users/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /** Update a user's role or config (admin only) */
-        put: operations["adminUpdateUser"];
-        post?: never;
-        /** Delete a user (admin only) */
-        delete: operations["adminDeleteUser"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** List all users (admin only) */
+    get: operations["adminListUsers"];
+    put?: never;
+    /** Create a new user (admin only) */
+    post: operations["adminCreateUser"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/admin/users/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/admin/kill-switch": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Activate or deactivate the trading kill switch (admin only) */
-        post: operations["adminSetKillSwitch"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    /** Update a user's role or config (admin only) */
+    put: operations["adminUpdateUser"];
+    post?: never;
+    /** Delete a user (admin only) */
+    delete: operations["adminDeleteUser"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/admin/kill-switch": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/admin/system-status": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get system runtime status (admin only) */
-        get: operations["adminGetSystemStatus"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Activate or deactivate the trading kill switch (admin only) */
+    post: operations["adminSetKillSwitch"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/admin/system-status": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/v1/admin/reload-model": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Trigger a hot-reload of the ML sidecar model (admin only) */
-        post: operations["adminReloadModel"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Get system runtime status (admin only) */
+    get: operations["adminGetSystemStatus"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/admin/reload-model": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/ws/feed": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Real-time WebSocket feed
-         * @description Upgrade to WebSocket. Requires a valid Bearer token in the Authorization header at upgrade time. All messages conform to the WsMessage discriminated union (discriminator property: type).
-         */
-        get: operations["wsFeed"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Trigger a hot-reload of the ML sidecar model (admin only) */
+    post: operations["adminReloadModel"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/ws/feed": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
+    /**
+     * Real-time WebSocket feed
+     * @description Upgrade to WebSocket. Requires a valid Bearer token in the Authorization header at upgrade time. All messages conform to the WsMessage discriminated union (discriminator property: type).
+     */
+    get: operations["wsFeed"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-    schemas: {
-        ErrorResponse: {
-            /** @description Human-readable error message. */
-            error: string;
-            /**
-             * Format: uuid
-             * @description Correlates this error to server-side log entries.
-             */
-            requestId: string;
-            /** @description Optional field-level validation errors or structured debug info. */
-            details?: {
-                [key: string]: unknown;
-            };
-        };
-        LoginRequest: {
-            /** Format: email */
-            email: string;
-            password: string;
-        };
-        LoginResponse: {
-            /** @description RS256-signed JWT access token (15-minute TTL). */
-            accessToken: string;
-            /** Format: uuid */
-            userId: string;
-            /** @enum {string} */
-            role: "admin" | "trader" | "viewer";
-        };
-        User: {
-            /** Format: uuid */
-            id: string;
-            /** Format: email */
-            email: string;
-            /** @enum {string} */
-            role: "admin" | "trader" | "viewer";
-            config: components["schemas"]["UserConfig"];
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-        };
-        UserConfig: {
-            autoTradingEnabled: boolean;
-            /** Format: float */
-            maxRiskPerTrade: number;
-            /** Format: float */
-            maxDailyLoss: number;
-            maxOpenPositions: number;
-            /** Format: float */
-            buyThreshold: number;
-            /** Format: float */
-            sellThreshold: number;
-            signalDecayHalfLifeSecs: number;
-        };
-        UpdateUserConfigRequest: {
-            autoTradingEnabled: boolean;
-            /** Format: float */
-            maxRiskPerTrade: number;
-            /** Format: float */
-            maxDailyLoss: number;
-            maxOpenPositions: number;
-            /** Format: float */
-            buyThreshold: number;
-            /** Format: float */
-            sellThreshold: number;
-            signalDecayHalfLifeSecs: number;
-        };
-        CreateUserRequest: {
-            /** Format: email */
-            email: string;
-            password: string;
-            /** @enum {string} */
-            role: "admin" | "trader" | "viewer";
-        };
-        UpdateUserRequest: {
-            /** @enum {string} */
-            role?: "admin" | "trader" | "viewer";
-            config?: components["schemas"]["UserConfig"];
-        };
-        Market: {
-            /** @description Kalshi market ticker/ID. */
-            id: string;
-            title: string;
-            description?: string;
-            category?: string;
-            /** Format: date-time */
-            closeTime?: string;
-            /** @enum {string} */
-            status: "open" | "closed" | "resolved";
-            /** Format: float */
-            yesPrice: number;
-            /** Format: float */
-            noPrice: number;
-            /** Format: float */
-            volume?: number;
-            /** Format: date-time */
-            lastUpdated: string;
-        };
-        MarketSubscription: {
-            /** Format: uuid */
-            userId: string;
-            marketId: string;
-            keywordTags: string[];
-            /** Format: date-time */
-            createdAt: string;
-        };
-        CreateSubscriptionRequest: {
-            marketId: string;
-            /** @default [] */
-            keywordTags: string[];
-        };
-        MarketConfidence: {
-            marketId: string;
-            /**
-             * Format: float
-             * @description Decayed weighted sum of all signals. Positive = net bullish. Negative = net bearish. Near zero = insufficient signal.
-             */
-            score: number;
-            signalCount: number;
-            /** Format: date-time */
-            lastUpdated: string;
-        };
-        Order: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            userId: string;
-            marketId: string;
-            /** @enum {string} */
-            side: "yes" | "no";
-            /** Format: float */
-            size: number;
-            /** Format: float */
-            limitPrice: number;
-            /** @enum {string} */
-            status: "pending" | "submitted" | "filled" | "cancelled" | "failed";
-            simulated: boolean;
-            brokerOrderId?: string | null;
-            failureReason?: string | null;
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            submittedAt?: string | null;
-            /** Format: date-time */
-            filledAt?: string | null;
-            /** Format: date-time */
-            cancelledAt?: string | null;
-        };
-        Position: {
-            marketId: string;
-            /** @enum {string} */
-            side: "yes" | "no";
-            /** Format: float */
-            contracts: number;
-            /** Format: float */
-            avgPrice: number;
-            /** Format: float */
-            currentValue: number;
-            /** Format: float */
-            pnl: number;
-            /** Format: date-time */
-            openedAt: string;
-        };
-        SystemConfig: {
-            autoTradingSystemEnabled: boolean;
-            killSwitchActive: boolean;
-            maxGlobalOpenPositions: number;
-            modelVersion: string;
-            /** Format: date-time */
-            updatedAt: string;
-        };
-        SystemStatus: {
-            goroutineCount: number;
-            workerQueueDepth: number;
-            modelVersion: string;
-            killSwitchActive: boolean;
-            /** @description ISO 8601 duration string (e.g. PT1H30M). */
-            uptime: string;
-        };
-        KillSwitchRequest: {
-            active: boolean;
-        };
-        ReloadModelRequest: {
-            modelPath: string;
-        };
-        WsMessage: components["schemas"]["WsConfidenceUpdate"] | components["schemas"]["WsStrategyOutput"] | components["schemas"]["WsOrderUpdate"] | components["schemas"]["WsSignalEvent"] | components["schemas"]["WsSystemAlert"];
-        WsConfidenceUpdate: {
-            /**
-             * @description discriminator enum property added by openapi-typescript
-             * @enum {string}
-             */
-            type: "confidence_update";
-            marketId: string;
-            /** Format: float */
-            score: number;
-            /** Format: date-time */
-            ts: string;
-        };
-        WsStrategyOutput: {
-            /**
-             * @description discriminator enum property added by openapi-typescript
-             * @enum {string}
-             */
-            type: "strategy_output";
-            marketId: string;
-            /** @enum {string} */
-            decision: "BUY" | "SELL" | "NO_TRADE";
-            /** Format: float */
-            confidence: number;
-            /** Format: date-time */
-            ts: string;
-        };
-        WsOrderUpdate: {
-            /**
-             * @description discriminator enum property added by openapi-typescript
-             * @enum {string}
-             */
-            type: "order_update";
-            /** Format: uuid */
-            orderId: string;
-            /** @enum {string} */
-            status: "pending" | "submitted" | "filled" | "cancelled" | "failed";
-            /** Format: date-time */
-            ts: string;
-        };
-        WsSignalEvent: {
-            /**
-             * @description discriminator enum property added by openapi-typescript
-             * @enum {string}
-             */
-            type: "signal_event";
-            marketId: string;
-            /** Format: float */
-            netSignal: number;
-            source: string;
-            /** Format: date-time */
-            ts: string;
-        };
-        WsSystemAlert: {
-            /**
-             * @description discriminator enum property added by openapi-typescript
-             * @enum {string}
-             */
-            type: "system_alert";
-            /** @enum {string} */
-            level: "info" | "warn" | "error" | "critical";
-            message: string;
-            /** Format: date-time */
-            ts: string;
-        };
+  schemas: {
+    ErrorResponse: {
+      /** @description Human-readable error message. */
+      error: string;
+      /**
+       * Format: uuid
+       * @description Correlates this error to server-side log entries.
+       */
+      requestId: string;
+      /** @description Optional field-level validation errors or structured debug info. */
+      details?: {
+        [key: string]: unknown;
+      };
     };
-    responses: {
-        /** @description Missing or invalid authentication token. */
-        ErrorUnauthorized: {
-            headers: {
-                [name: string]: unknown;
-            };
-            content: {
-                "application/json": components["schemas"]["ErrorResponse"];
-            };
-        };
-        /** @description Authenticated but insufficient permissions (requires admin role). */
-        ErrorForbidden: {
-            headers: {
-                [name: string]: unknown;
-            };
-            content: {
-                "application/json": components["schemas"]["ErrorResponse"];
-            };
-        };
-        /** @description Resource not found. */
-        ErrorNotFound: {
-            headers: {
-                [name: string]: unknown;
-            };
-            content: {
-                "application/json": components["schemas"]["ErrorResponse"];
-            };
-        };
-        /** @description Resource already exists. */
-        ErrorConflict: {
-            headers: {
-                [name: string]: unknown;
-            };
-            content: {
-                "application/json": components["schemas"]["ErrorResponse"];
-            };
-        };
-        /** @description Request validation failed. */
-        ErrorUnprocessable: {
-            headers: {
-                [name: string]: unknown;
-            };
-            content: {
-                "application/json": components["schemas"]["ErrorResponse"];
-            };
-        };
-        /** @description Unexpected server error. */
-        ErrorInternalServer: {
-            headers: {
-                [name: string]: unknown;
-            };
-            content: {
-                "application/json": components["schemas"]["ErrorResponse"];
-            };
-        };
+    LoginRequest: {
+      /** Format: email */
+      email: string;
+      password: string;
     };
-    parameters: never;
-    requestBodies: never;
-    headers: never;
-    pathItems: never;
+    LoginResponse: {
+      /** @description RS256-signed JWT access token (15-minute TTL). */
+      accessToken: string;
+      /** Format: uuid */
+      userId: string;
+      /** @enum {string} */
+      role: "admin" | "trader" | "viewer";
+    };
+    User: {
+      /** Format: uuid */
+      id: string;
+      /** Format: email */
+      email: string;
+      /** @enum {string} */
+      role: "admin" | "trader" | "viewer";
+      config: components["schemas"]["UserConfig"];
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      updatedAt: string;
+    };
+    UserConfig: {
+      autoTradingEnabled: boolean;
+      /** Format: float */
+      maxRiskPerTrade: number;
+      /** Format: float */
+      maxDailyLoss: number;
+      maxOpenPositions: number;
+      /** Format: float */
+      buyThreshold: number;
+      /** Format: float */
+      sellThreshold: number;
+      signalDecayHalfLifeSecs: number;
+    };
+    UpdateUserConfigRequest: {
+      autoTradingEnabled: boolean;
+      /** Format: float */
+      maxRiskPerTrade: number;
+      /** Format: float */
+      maxDailyLoss: number;
+      maxOpenPositions: number;
+      /** Format: float */
+      buyThreshold: number;
+      /** Format: float */
+      sellThreshold: number;
+      signalDecayHalfLifeSecs: number;
+    };
+    CreateUserRequest: {
+      /** Format: email */
+      email: string;
+      password: string;
+      /** @enum {string} */
+      role: "admin" | "trader" | "viewer";
+    };
+    UpdateUserRequest: {
+      /** @enum {string} */
+      role?: "admin" | "trader" | "viewer";
+      config?: components["schemas"]["UserConfig"];
+    };
+    Market: {
+      /** @description Kalshi market ticker/ID. */
+      id: string;
+      title: string;
+      description?: string;
+      category?: string;
+      /** Format: date-time */
+      closeTime?: string;
+      /** @enum {string} */
+      status: "open" | "closed" | "resolved";
+      /** Format: float */
+      yesPrice: number;
+      /** Format: float */
+      noPrice: number;
+      /** Format: float */
+      volume?: number;
+      /** Format: date-time */
+      lastUpdated: string;
+    };
+    MarketSubscription: {
+      /** Format: uuid */
+      userId: string;
+      marketId: string;
+      keywordTags: string[];
+      /** Format: date-time */
+      createdAt: string;
+    };
+    CreateSubscriptionRequest: {
+      marketId: string;
+      /** @default [] */
+      keywordTags: string[];
+    };
+    MarketConfidence: {
+      marketId: string;
+      /**
+       * Format: float
+       * @description Decayed weighted sum of all signals. Positive = net bullish. Negative = net bearish. Near zero = insufficient signal.
+       */
+      score: number;
+      signalCount: number;
+      /** Format: date-time */
+      lastUpdated: string;
+    };
+    Order: {
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      userId: string;
+      marketId: string;
+      /** @enum {string} */
+      side: "yes" | "no";
+      /** Format: float */
+      size: number;
+      /** Format: float */
+      limitPrice: number;
+      /** @enum {string} */
+      status: "pending" | "submitted" | "filled" | "cancelled" | "failed";
+      simulated: boolean;
+      brokerOrderId?: string | null;
+      failureReason?: string | null;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      submittedAt?: string | null;
+      /** Format: date-time */
+      filledAt?: string | null;
+      /** Format: date-time */
+      cancelledAt?: string | null;
+    };
+    Position: {
+      marketId: string;
+      /** @enum {string} */
+      side: "yes" | "no";
+      /** Format: float */
+      contracts: number;
+      /** Format: float */
+      avgPrice: number;
+      /** Format: float */
+      currentValue: number;
+      /** Format: float */
+      pnl: number;
+      /** Format: date-time */
+      openedAt: string;
+    };
+    SystemConfig: {
+      autoTradingSystemEnabled: boolean;
+      killSwitchActive: boolean;
+      maxGlobalOpenPositions: number;
+      modelVersion: string;
+      /** Format: date-time */
+      updatedAt: string;
+    };
+    SystemStatus: {
+      goroutineCount: number;
+      workerQueueDepth: number;
+      modelVersion: string;
+      killSwitchActive: boolean;
+      /** @description ISO 8601 duration string (e.g. PT1H30M). */
+      uptime: string;
+    };
+    KillSwitchRequest: {
+      active: boolean;
+    };
+    ReloadModelRequest: {
+      modelPath: string;
+    };
+    WsMessage:
+      | components["schemas"]["WsConfidenceUpdate"]
+      | components["schemas"]["WsStrategyOutput"]
+      | components["schemas"]["WsOrderUpdate"]
+      | components["schemas"]["WsSignalEvent"]
+      | components["schemas"]["WsSystemAlert"];
+    WsConfidenceUpdate: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: "confidence_update";
+      marketId: string;
+      /** Format: float */
+      score: number;
+      /** Format: date-time */
+      ts: string;
+    };
+    WsStrategyOutput: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: "strategy_output";
+      marketId: string;
+      /** @enum {string} */
+      decision: "BUY" | "SELL" | "NO_TRADE";
+      /** Format: float */
+      confidence: number;
+      /** Format: date-time */
+      ts: string;
+    };
+    WsOrderUpdate: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: "order_update";
+      /** Format: uuid */
+      orderId: string;
+      /** @enum {string} */
+      status: "pending" | "submitted" | "filled" | "cancelled" | "failed";
+      /** Format: date-time */
+      ts: string;
+    };
+    WsSignalEvent: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: "signal_event";
+      marketId: string;
+      /** Format: float */
+      netSignal: number;
+      source: string;
+      /** Format: date-time */
+      ts: string;
+    };
+    WsSystemAlert: {
+      /**
+       * @description discriminator enum property added by openapi-typescript
+       * @enum {string}
+       */
+      type: "system_alert";
+      /** @enum {string} */
+      level: "info" | "warn" | "error" | "critical";
+      message: string;
+      /** Format: date-time */
+      ts: string;
+    };
+  };
+  responses: {
+    /** @description Missing or invalid authentication token. */
+    ErrorUnauthorized: {
+      headers: {
+        [name: string]: unknown;
+      };
+      content: {
+        "application/json": components["schemas"]["ErrorResponse"];
+      };
+    };
+    /** @description Authenticated but insufficient permissions (requires admin role). */
+    ErrorForbidden: {
+      headers: {
+        [name: string]: unknown;
+      };
+      content: {
+        "application/json": components["schemas"]["ErrorResponse"];
+      };
+    };
+    /** @description Resource not found. */
+    ErrorNotFound: {
+      headers: {
+        [name: string]: unknown;
+      };
+      content: {
+        "application/json": components["schemas"]["ErrorResponse"];
+      };
+    };
+    /** @description Resource already exists. */
+    ErrorConflict: {
+      headers: {
+        [name: string]: unknown;
+      };
+      content: {
+        "application/json": components["schemas"]["ErrorResponse"];
+      };
+    };
+    /** @description Request validation failed. */
+    ErrorUnprocessable: {
+      headers: {
+        [name: string]: unknown;
+      };
+      content: {
+        "application/json": components["schemas"]["ErrorResponse"];
+      };
+    };
+    /** @description Unexpected server error. */
+    ErrorInternalServer: {
+      headers: {
+        [name: string]: unknown;
+      };
+      content: {
+        "application/json": components["schemas"]["ErrorResponse"];
+      };
+    };
+  };
+  parameters: never;
+  requestBodies: never;
+  headers: never;
+  pathItems: never;
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    login: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["LoginRequest"];
-            };
-        };
-        responses: {
-            /** @description Login successful. Access token returned in body. Refresh token set in httpOnly Secure SameSite=Strict cookie. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["LoginResponse"];
-                };
-            };
-            401: components["responses"]["ErrorUnauthorized"];
-            422: components["responses"]["ErrorUnprocessable"];
-            500: components["responses"]["ErrorInternalServer"];
-        };
+  login: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    refreshToken: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description New access token issued. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["LoginResponse"];
-                };
-            };
-            401: components["responses"]["ErrorUnauthorized"];
-            500: components["responses"]["ErrorInternalServer"];
-        };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["LoginRequest"];
+      };
     };
-    logout: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    responses: {
+      /** @description Login successful. Access token returned in body. Refresh token set in httpOnly Secure SameSite=Strict cookie. */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Logged out successfully. */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            401: components["responses"]["ErrorUnauthorized"];
-            500: components["responses"]["ErrorInternalServer"];
+        content: {
+          "application/json": components["schemas"]["LoginResponse"];
         };
+      };
+      401: components["responses"]["ErrorUnauthorized"];
+      422: components["responses"]["ErrorUnprocessable"];
+      500: components["responses"]["ErrorInternalServer"];
     };
-    listMarkets: {
-        parameters: {
-            query?: {
-                /** @description Optional search query string. */
-                q?: string;
-                limit?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Market"][];
-                };
-            };
-            401: components["responses"]["ErrorUnauthorized"];
-            500: components["responses"]["ErrorInternalServer"];
-        };
+  };
+  refreshToken: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    getMarket: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description New access token issued. */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Market"];
-                };
-            };
-            401: components["responses"]["ErrorUnauthorized"];
-            404: components["responses"]["ErrorNotFound"];
-            500: components["responses"]["ErrorInternalServer"];
+        content: {
+          "application/json": components["schemas"]["LoginResponse"];
         };
+      };
+      401: components["responses"]["ErrorUnauthorized"];
+      500: components["responses"]["ErrorInternalServer"];
     };
-    listSubscriptions: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MarketSubscription"][];
-                };
-            };
-            401: components["responses"]["ErrorUnauthorized"];
-            500: components["responses"]["ErrorInternalServer"];
-        };
+  };
+  logout: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    createSubscription: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Logged out successfully. */
+      204: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateSubscriptionRequest"];
-            };
-        };
-        responses: {
-            /** @description Subscription created. */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MarketSubscription"];
-                };
-            };
-            401: components["responses"]["ErrorUnauthorized"];
-            409: components["responses"]["ErrorConflict"];
-            422: components["responses"]["ErrorUnprocessable"];
-            500: components["responses"]["ErrorInternalServer"];
-        };
+        content?: never;
+      };
+      401: components["responses"]["ErrorUnauthorized"];
+      500: components["responses"]["ErrorInternalServer"];
     };
-    deleteSubscription: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                market_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Unsubscribed successfully. */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            401: components["responses"]["ErrorUnauthorized"];
-            404: components["responses"]["ErrorNotFound"];
-            500: components["responses"]["ErrorInternalServer"];
-        };
+  };
+  listMarkets: {
+    parameters: {
+      query?: {
+        /** @description Optional search query string. */
+        q?: string;
+        limit?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    listConfidence: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MarketConfidence"][];
-                };
-            };
-            401: components["responses"]["ErrorUnauthorized"];
-            500: components["responses"]["ErrorInternalServer"];
+        content: {
+          "application/json": components["schemas"]["Market"][];
         };
+      };
+      401: components["responses"]["ErrorUnauthorized"];
+      500: components["responses"]["ErrorInternalServer"];
     };
-    getConfidence: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                market_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MarketConfidence"];
-                };
-            };
-            401: components["responses"]["ErrorUnauthorized"];
-            404: components["responses"]["ErrorNotFound"];
-            500: components["responses"]["ErrorInternalServer"];
-        };
+  };
+  getMarket: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
     };
-    listOrders: {
-        parameters: {
-            query?: {
-                marketId?: string;
-                status?: "pending" | "submitted" | "filled" | "cancelled" | "failed";
-                simulated?: boolean;
-                limit?: number;
-                offset?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Order"][];
-                };
-            };
-            401: components["responses"]["ErrorUnauthorized"];
-            500: components["responses"]["ErrorInternalServer"];
+        content: {
+          "application/json": components["schemas"]["Market"];
         };
+      };
+      401: components["responses"]["ErrorUnauthorized"];
+      404: components["responses"]["ErrorNotFound"];
+      500: components["responses"]["ErrorInternalServer"];
     };
-    getOrder: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Order"];
-                };
-            };
-            401: components["responses"]["ErrorUnauthorized"];
-            404: components["responses"]["ErrorNotFound"];
-            500: components["responses"]["ErrorInternalServer"];
-        };
+  };
+  listSubscriptions: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    listPositions: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Position"][];
-                };
-            };
-            401: components["responses"]["ErrorUnauthorized"];
-            500: components["responses"]["ErrorInternalServer"];
+        content: {
+          "application/json": components["schemas"]["MarketSubscription"][];
         };
+      };
+      401: components["responses"]["ErrorUnauthorized"];
+      500: components["responses"]["ErrorInternalServer"];
     };
-    getConfig: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserConfig"];
-                };
-            };
-            401: components["responses"]["ErrorUnauthorized"];
-            500: components["responses"]["ErrorInternalServer"];
-        };
+  };
+  createSubscription: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    updateConfig: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateUserConfigRequest"];
-            };
-        };
-        responses: {
-            /** @description Configuration updated. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserConfig"];
-                };
-            };
-            401: components["responses"]["ErrorUnauthorized"];
-            422: components["responses"]["ErrorUnprocessable"];
-            500: components["responses"]["ErrorInternalServer"];
-        };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CreateSubscriptionRequest"];
+      };
     };
-    adminListUsers: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    responses: {
+      /** @description Subscription created. */
+      201: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["User"][];
-                };
-            };
-            401: components["responses"]["ErrorUnauthorized"];
-            403: components["responses"]["ErrorForbidden"];
-            500: components["responses"]["ErrorInternalServer"];
+        content: {
+          "application/json": components["schemas"]["MarketSubscription"];
         };
+      };
+      401: components["responses"]["ErrorUnauthorized"];
+      409: components["responses"]["ErrorConflict"];
+      422: components["responses"]["ErrorUnprocessable"];
+      500: components["responses"]["ErrorInternalServer"];
     };
-    adminCreateUser: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateUserRequest"];
-            };
-        };
-        responses: {
-            /** @description User created. */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["User"];
-                };
-            };
-            401: components["responses"]["ErrorUnauthorized"];
-            403: components["responses"]["ErrorForbidden"];
-            409: components["responses"]["ErrorConflict"];
-            422: components["responses"]["ErrorUnprocessable"];
-            500: components["responses"]["ErrorInternalServer"];
-        };
+  };
+  deleteSubscription: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        market_id: string;
+      };
+      cookie?: never;
     };
-    adminUpdateUser: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Unsubscribed successfully. */
+      204: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateUserRequest"];
-            };
-        };
-        responses: {
-            /** @description User updated. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["User"];
-                };
-            };
-            401: components["responses"]["ErrorUnauthorized"];
-            403: components["responses"]["ErrorForbidden"];
-            404: components["responses"]["ErrorNotFound"];
-            422: components["responses"]["ErrorUnprocessable"];
-            500: components["responses"]["ErrorInternalServer"];
-        };
+        content?: never;
+      };
+      401: components["responses"]["ErrorUnauthorized"];
+      404: components["responses"]["ErrorNotFound"];
+      500: components["responses"]["ErrorInternalServer"];
     };
-    adminDeleteUser: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description User deleted. */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            401: components["responses"]["ErrorUnauthorized"];
-            403: components["responses"]["ErrorForbidden"];
-            404: components["responses"]["ErrorNotFound"];
-            500: components["responses"]["ErrorInternalServer"];
-        };
+  };
+  listConfidence: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    adminSetKillSwitch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["KillSwitchRequest"];
-            };
+        content: {
+          "application/json": components["schemas"]["MarketConfidence"][];
         };
-        responses: {
-            /** @description Kill switch state updated. Returns updated system config. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SystemConfig"];
-                };
-            };
-            401: components["responses"]["ErrorUnauthorized"];
-            403: components["responses"]["ErrorForbidden"];
-            422: components["responses"]["ErrorUnprocessable"];
-            500: components["responses"]["ErrorInternalServer"];
-        };
+      };
+      401: components["responses"]["ErrorUnauthorized"];
+      500: components["responses"]["ErrorInternalServer"];
     };
-    adminGetSystemStatus: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SystemStatus"];
-                };
-            };
-            401: components["responses"]["ErrorUnauthorized"];
-            403: components["responses"]["ErrorForbidden"];
-            500: components["responses"]["ErrorInternalServer"];
-        };
+  };
+  getConfidence: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        market_id: string;
+      };
+      cookie?: never;
     };
-    adminReloadModel: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ReloadModelRequest"];
-            };
+        content: {
+          "application/json": components["schemas"]["MarketConfidence"];
         };
-        responses: {
-            /** @description Reload accepted; sidecar will swap model asynchronously. */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            401: components["responses"]["ErrorUnauthorized"];
-            403: components["responses"]["ErrorForbidden"];
-            422: components["responses"]["ErrorUnprocessable"];
-            500: components["responses"]["ErrorInternalServer"];
-        };
+      };
+      401: components["responses"]["ErrorUnauthorized"];
+      404: components["responses"]["ErrorNotFound"];
+      500: components["responses"]["ErrorInternalServer"];
     };
-    wsFeed: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Switching Protocols */
-            101: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
+  };
+  listOrders: {
+    parameters: {
+      query?: {
+        marketId?: string;
+        status?: "pending" | "submitted" | "filled" | "cancelled" | "failed";
+        simulated?: boolean;
+        limit?: number;
+        offset?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Order"][];
+        };
+      };
+      401: components["responses"]["ErrorUnauthorized"];
+      500: components["responses"]["ErrorInternalServer"];
+    };
+  };
+  getOrder: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Order"];
+        };
+      };
+      401: components["responses"]["ErrorUnauthorized"];
+      404: components["responses"]["ErrorNotFound"];
+      500: components["responses"]["ErrorInternalServer"];
+    };
+  };
+  listPositions: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Position"][];
+        };
+      };
+      401: components["responses"]["ErrorUnauthorized"];
+      500: components["responses"]["ErrorInternalServer"];
+    };
+  };
+  getConfig: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["UserConfig"];
+        };
+      };
+      401: components["responses"]["ErrorUnauthorized"];
+      500: components["responses"]["ErrorInternalServer"];
+    };
+  };
+  updateConfig: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UpdateUserConfigRequest"];
+      };
+    };
+    responses: {
+      /** @description Configuration updated. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["UserConfig"];
+        };
+      };
+      401: components["responses"]["ErrorUnauthorized"];
+      422: components["responses"]["ErrorUnprocessable"];
+      500: components["responses"]["ErrorInternalServer"];
+    };
+  };
+  adminListUsers: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["User"][];
+        };
+      };
+      401: components["responses"]["ErrorUnauthorized"];
+      403: components["responses"]["ErrorForbidden"];
+      500: components["responses"]["ErrorInternalServer"];
+    };
+  };
+  adminCreateUser: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CreateUserRequest"];
+      };
+    };
+    responses: {
+      /** @description User created. */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["User"];
+        };
+      };
+      401: components["responses"]["ErrorUnauthorized"];
+      403: components["responses"]["ErrorForbidden"];
+      409: components["responses"]["ErrorConflict"];
+      422: components["responses"]["ErrorUnprocessable"];
+      500: components["responses"]["ErrorInternalServer"];
+    };
+  };
+  adminUpdateUser: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UpdateUserRequest"];
+      };
+    };
+    responses: {
+      /** @description User updated. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["User"];
+        };
+      };
+      401: components["responses"]["ErrorUnauthorized"];
+      403: components["responses"]["ErrorForbidden"];
+      404: components["responses"]["ErrorNotFound"];
+      422: components["responses"]["ErrorUnprocessable"];
+      500: components["responses"]["ErrorInternalServer"];
+    };
+  };
+  adminDeleteUser: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description User deleted. */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      401: components["responses"]["ErrorUnauthorized"];
+      403: components["responses"]["ErrorForbidden"];
+      404: components["responses"]["ErrorNotFound"];
+      500: components["responses"]["ErrorInternalServer"];
+    };
+  };
+  adminSetKillSwitch: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["KillSwitchRequest"];
+      };
+    };
+    responses: {
+      /** @description Kill switch state updated. Returns updated system config. */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["SystemConfig"];
+        };
+      };
+      401: components["responses"]["ErrorUnauthorized"];
+      403: components["responses"]["ErrorForbidden"];
+      422: components["responses"]["ErrorUnprocessable"];
+      500: components["responses"]["ErrorInternalServer"];
+    };
+  };
+  adminGetSystemStatus: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["SystemStatus"];
+        };
+      };
+      401: components["responses"]["ErrorUnauthorized"];
+      403: components["responses"]["ErrorForbidden"];
+      500: components["responses"]["ErrorInternalServer"];
+    };
+  };
+  adminReloadModel: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ReloadModelRequest"];
+      };
+    };
+    responses: {
+      /** @description Reload accepted; sidecar will swap model asynchronously. */
+      202: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      401: components["responses"]["ErrorUnauthorized"];
+      403: components["responses"]["ErrorForbidden"];
+      422: components["responses"]["ErrorUnprocessable"];
+      500: components["responses"]["ErrorInternalServer"];
+    };
+  };
+  wsFeed: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Switching Protocols */
+      101: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
 }
