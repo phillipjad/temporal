@@ -8,7 +8,7 @@ patched so no real model weights or tokenizer files are needed.
 from __future__ import annotations
 
 from pathlib import Path
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest

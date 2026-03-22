@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rm uv.lock)",
+      "Bash(uv sync:*)",
+      "Bash(git -C \"c:/Aryan/Git/temporal\" add .gitignore)",
+      "Bash(git -C:*)"
+    ]
+  }
+}

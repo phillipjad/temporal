@@ -18,11 +18,12 @@ probabilities.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import tomllib
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import AsyncGenerator
+from typing import Any, AsyncGenerator
 
 from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import JSONResponse
@@ -40,7 +41,7 @@ logging.basicConfig(
 _CONFIG_PATH = Path("/opt/temporal/config/temporal_config.toml")
 
 
-def _load_config() -> dict:  # type: ignore[type-arg]  # tomllib returns dict[str, Any]; Any propagation is intentional here
+def _load_config() -> dict[str, Any]:
     if not _CONFIG_PATH.exists():
         raise FileNotFoundError(
             f"Config file not found: {_CONFIG_PATH}. "
@@ -167,6 +168,14 @@ async def infer(req: InferRequest) -> InferResponse | JSONResponse:
 
     try:
         result = await _batcher.enqueue(req.text)
+    except asyncio.CancelledError:
+        # Raised when the batcher is stopped mid-flight (graceful shutdown).
+        # CancelledError is BaseException, not Exception, so it must be
+        # caught explicitly — otherwise it escapes without a structured body.
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={"error": "Sidecar is shutting down", "request_id": req.request_id},
+        )
     except Exception as exc:
         logger.exception("Inference failed for request_id=%s: %s", req.request_id, exc)
         return JSONResponse(
