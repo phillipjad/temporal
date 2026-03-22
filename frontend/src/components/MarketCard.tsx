@@ -11,6 +11,7 @@ import type { components } from "../lib/api.types";
 type Market = components["schemas"]["Market"];
 
 export function MarketCard({ market }: { market: Market }) {
+  const confidenceScore = market.confidenceScore ?? 0;
   return (
     <Card variant="outlined" sx={{ mb: 2 }}>
       <CardContent>
@@ -19,11 +20,11 @@ export function MarketCard({ market }: { market: Market }) {
             {market.question}
           </Typography>
           <Chip
-            label={`${(market.confidenceScore * 100).toFixed(1)}%`}
+            label={`${(confidenceScore * 100).toFixed(1)}%`}
             color={
-              market.confidenceScore >= 0.7
+              confidenceScore >= 0.7
                 ? "success"
-                : market.confidenceScore <= 0.3
+                : confidenceScore <= 0.3
                   ? "error"
                   : "warning"
             }
@@ -35,12 +36,12 @@ export function MarketCard({ market }: { market: Market }) {
         </Typography>
         <LinearProgress
           variant="determinate"
-          value={market.confidenceScore * 100}
+          value={confidenceScore * 100}
           sx={{ height: "0.5rem", borderRadius: "0.25rem", bgcolor: "divider" }}
           color={
-            market.confidenceScore >= 0.7
+            confidenceScore >= 0.7
               ? "success"
-              : market.confidenceScore <= 0.3
+              : confidenceScore <= 0.3
                 ? "error"
                 : "warning"
           }
