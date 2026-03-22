@@ -26,7 +26,9 @@ describe("ContributingSignalList", () => {
   it("renders a signal's source and text snippet", () => {
     render(<ContributingSignalList signals={[makeSignal()]} />);
     expect(screen.getByText("Reuters")).toBeDefined();
-    expect(screen.getByText(/"Stocks rally on positive economic data."/)).toBeDefined();
+    expect(
+      screen.getByText(/"Stocks rally on positive economic data."/),
+    ).toBeDefined();
   });
 
   it("renders a positive impact with a + prefix", () => {
@@ -35,7 +37,9 @@ describe("ContributingSignalList", () => {
   });
 
   it("renders a negative impact without a + prefix", () => {
-    render(<ContributingSignalList signals={[makeSignal({ impact: -0.08 })]} />);
+    render(
+      <ContributingSignalList signals={[makeSignal({ impact: -0.08 })]} />,
+    );
     expect(screen.getByText("-0.08")).toBeDefined();
   });
 
@@ -55,7 +59,11 @@ describe("ContributingSignalList", () => {
   });
 
   it("renders the timestamp for each signal", () => {
-    render(<ContributingSignalList signals={[makeSignal({ timestamp: "09:30:00" })]} />);
+    render(
+      <ContributingSignalList
+        signals={[makeSignal({ timestamp: "09:30:00" })]}
+      />,
+    );
     expect(screen.getByText("09:30:00")).toBeDefined();
   });
 });
