@@ -40,7 +40,7 @@ export function useWs(url: string) {
 
       const newsItems = messages
         .filter((m) => m.type === "news_event")
-        .map((m) => (m.payload as unknown) as NewsEvent);
+        .map((m) => m.payload as unknown as NewsEvent);
 
       if (newsItems.length > 0) {
         window.dispatchEvent(
