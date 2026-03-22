@@ -99,7 +99,8 @@ export function DashboardPage() {
       pushNews(customEvent.detail);
     };
     window.addEventListener("temporal:signal_event", handleNews);
-    return () => window.removeEventListener("temporal:signal_event", handleNews);
+    return () =>
+      window.removeEventListener("temporal:signal_event", handleNews);
   }, [pushNews]);
 
   // Fall back to mock news when no real WS data arrives
