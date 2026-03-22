@@ -25,7 +25,7 @@ export function NewsFeed({ news }: { news: NewsEvent[] }) {
         <Stack spacing={2}>
           {news.map((item, idx) => (
             <Card key={`${item.id}-${idx}`} variant="outlined">
-              <CardContent sx={{ pb: "16px !important" }}>
+              <CardContent sx={{ pb: "1rem !important" }}>
                 <Box
                   sx={{
                     display: "flex",
